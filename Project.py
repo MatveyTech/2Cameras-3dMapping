@@ -68,10 +68,16 @@ def GetCameraPosition(path2image, camera_int_mat,dist_coeff):
     if not ret:
         return None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+    
 #    cv2.imshow('img',gray)
 #    cv2.waitKey(3000)
 #    cv2.destroyAllWindows()
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
+
+def GetCamera3x4ProjMat(rvec, tvec):
+    res = cv2.Rodrigues(rvec)[0]
+    return np.hstack((res,tvec))
+    
 
 print("\n\n\n\n\n\n\n")
 
@@ -87,7 +93,7 @@ print (cam1_int_matrix)
 #print (cam1_dist_coeff)
 
 retval, rvec, tvec = GetCameraPosition(path+"left04.jpg",cam1_int_matrix,cam1_dist_coeff)
-res = cv2.Rodrigues(rvec)[0]
+print (GetCamera3x4ProjMat(rvec,tvec))
 #print res
 
 
