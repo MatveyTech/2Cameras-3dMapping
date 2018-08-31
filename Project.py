@@ -9,6 +9,7 @@ Created on Fri Aug  3 12:24:04 2018
 import numpy as np
 import cv2
 import glob
+import os
 
 chess_w = 7
 chess_h = 6
@@ -23,6 +24,7 @@ def GetObjectPoints():
 
 def GetIntrinsicMatrix(pathToImages):
 
+    
 # termination criteria    
     objp = GetObjectPoints()
     
@@ -30,7 +32,6 @@ def GetIntrinsicMatrix(pathToImages):
     imgpoints = [] 
     
     images = glob.glob(pathToImages+"*.jpg")
-    
     for fname in images:
         img = cv2.imread(fname)
 #        if img is None:
@@ -72,12 +73,20 @@ def GetCameraPosition(path2image, camera_int_mat,dist_coeff):
 #    cv2.destroyAllWindows()
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
 
+print("\n\n\n\n\n\n\n")
 
-cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix("Intrinsic calibration files/OpenCV Demo/"))
+mainPath = ""
+if os.path.isdir("C:/Users/matvey/"):
+    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
+    
+path = mainPath + "Intrinsic calibration files/OpenCV Demo/"
+
+
+cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(path))
 print (cam1_int_matrix)
-print (cam1_dist_coeff)
+#print (cam1_dist_coeff)
 
-retval, rvec, tvec = GetCameraPosition("Intrinsic calibration files/OpenCV Demo/left04.jpg",cam1_int_matrix,cam1_dist_coeff)
+retval, rvec, tvec = GetCameraPosition(path+"left04.jpg",cam1_int_matrix,cam1_dist_coeff)
 res = cv2.Rodrigues(rvec)[0]
 #print res
 
