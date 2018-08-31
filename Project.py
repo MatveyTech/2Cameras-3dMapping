@@ -77,6 +77,14 @@ def GetCameraPosition(path2image, camera_int_mat,dist_coeff):
 def GetCamera3x4ProjMat(rvec, tvec):
     res = cv2.Rodrigues(rvec)[0]
     return np.hstack((res,tvec))
+
+
+def GetFirstChessImageMatches(gray_img):
+    #img = cv2.imread(img_path)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)        
+    ret, corners = cv2.findChessboardCorners(gray_img, (chess_w,chess_h),None)    
+    corners_improved = cv2.cornerSubPix(gray_img,corners,(11,11),(-1,-1),criteria)    
+    return            
     
 
 print("\n\n\n\n\n\n\n")
@@ -94,7 +102,11 @@ print (cam1_int_matrix)
 
 retval, rvec, tvec = GetCameraPosition(path+"left04.jpg",cam1_int_matrix,cam1_dist_coeff)
 print (GetCamera3x4ProjMat(rvec,tvec))
+
+FindChessMatches(path+"left04.jpg")
 #print res
+
+#%%
 
 
 
