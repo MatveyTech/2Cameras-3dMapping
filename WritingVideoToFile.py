@@ -27,8 +27,8 @@ frame_width2 = int(cap2.get(3))
 frame_height2 = int(cap2.get(4))
  
 # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
-out = cv2.VideoWriter('debug_video.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
-out2 = cv2.VideoWriter('debug_video2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width2,frame_height2))
+out = cv2.VideoWriter('debug_video.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame_width,frame_height))
+out2 = cv2.VideoWriter('debug_video2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame_width2,frame_height2))
   
 while(True):
   ret, frame = cap.read()
