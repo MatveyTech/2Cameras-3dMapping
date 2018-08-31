@@ -79,13 +79,36 @@ def GetCamera3x4ProjMat(rvec, tvec):
     return np.hstack((res,tvec))
 
 
-def GetFirstChessImageMatches(gray_img):
+def GetFirstChessImageMatches(img):
     #img = cv2.imread(img_path)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)        
-    ret, corners = cv2.findChessboardCorners(gray_img, (chess_w,chess_h),None)    
-    corners_improved = cv2.cornerSubPix(gray_img,corners,(11,11),(-1,-1),criteria)    
-    return            
+    ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)    
+    corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)    
+    return GetObjectPoints(), corners_improved      
+
+def GetMatchedFeatures(img1,img2):
+    #img1 = cv2.imread('0cam1.jpeg',1)          # queryImage
+    #img2 = cv2.imread('0cam2.jpeg',1)
     
+    # Initiate ORB detector
+    orb = cv2.ORB_create()
+    
+    # find the keypoints and descriptors with ORB
+    kp1, des1 = orb.detectAndCompute(img1,None)
+    kp2, des2 = orb.detectAndCompute(img2,None)
+    
+    # create BFMatcher object
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    
+    # Match descriptors.
+    matches = bf.match(des1,des2)
+    
+    # Sort them in the order of their distance.
+    matches = sorted(matches, key = lambda x:x.distance)
+    
+    # Draw first 10 matches.
+    #img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
+    return kp1,kp2
 
 print("\n\n\n\n\n\n\n")
 
@@ -103,7 +126,9 @@ print (cam1_int_matrix)
 retval, rvec, tvec = GetCameraPosition(path+"left04.jpg",cam1_int_matrix,cam1_dist_coeff)
 print (GetCamera3x4ProjMat(rvec,tvec))
 
-FindChessMatches(path+"left04.jpg")
+x,y = GetFirstChessImageMatches(cv2.imread(path+"left04.jpg"))
+
+#FindChessMatches(path+"left04.jpg")
 #print res
 
 #%%
