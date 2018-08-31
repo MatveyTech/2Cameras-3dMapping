@@ -31,14 +31,17 @@ def GetIntrinsicMatrix(pathToImages):
     objpoints = [] 
     imgpoints = [] 
     
-    images = glob.glob(pathToImages+"*.jpg")
+    images = glob.glob(pathToImages+"*.jpeg")
+    
     for fname in images:
+        
         img = cv2.imread(fname)
-#        if img is None:
-#            print ('No such file {0}'.format(fname))
-#            continue
-#        else:
-#            print (fname)
+        if img is None:
+            print ('No such file {0}'.format(fname))
+            continue
+        else:
+            print (fname)
+        
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)        
         ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)    
         
@@ -46,6 +49,8 @@ def GetIntrinsicMatrix(pathToImages):
             objpoints.append(objp)    
             corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
             imgpoints.append(corners_improved)
+        else:
+            print("BAD")
     
             
 #            img = cv2.drawChessboardCorners(img, (7,6), corners_improved,ret)
@@ -135,7 +140,7 @@ def GetMatchedFeatures(img1, img2):
         l.append( kp1[matches[i].trainIdx].pt)
         r.append( kp2[matches[i].queryIdx].pt)
     return np.transpose(r),np.transpose(l)
-
+#%%
 print("\n\n\n\n\n\n\n")
 
 mainPath = ""
@@ -169,8 +174,11 @@ cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
 #projPoints1 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
 #projPoints2 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
 
-p1,p2 = GetMatchedFeatures(i01,i02)
+projected_1,projected_2 = GetMatchedFeatures(i01,i02)
 
+X = cv2.triangulatePoints(cam1_pm,cam2_pm,projected_1,projected_2)
+# Remember to divide out the 4th row. Make it homogeneous
+#cv2.convertPointsFromHomogeneous(
 #np.transpose(np.array([[1,2],[3,4],[5,6]]))
 
 #x,y = GetFirstChessImageMatches(cv2.imread(path+"left04.jpg"))
@@ -178,8 +186,10 @@ p1,p2 = GetMatchedFeatures(i01,i02)
 #FindChessMatches(path+"left04.jpg")
 #print res
 
-#%%
 
+ppath = mainPath + "Intrinsic calibration files/Left/"
+print (ppath)
+GetIntrinsicMatrix(ppath)
 
 
 
