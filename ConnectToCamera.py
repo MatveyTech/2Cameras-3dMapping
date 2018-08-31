@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 
-cap = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(1)
+cap2 = cv2.VideoCapture(3)
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -17,7 +17,9 @@ while(True):
     cv2.imshow('frame',gray)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
+    cv2.imshow('frame2',gray2)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 # When everything done, release the capture
 cap.release()
 cap2.release()
