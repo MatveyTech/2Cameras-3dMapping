@@ -60,15 +60,15 @@ def GetIntrinsicMatrix(pathToImages):
     cv2.destroyAllWindows()
     return camera_matrix,distortion_coefficient
 
-def GetCameraPosition(path2image, camera_int_mat,dist_coeff):
-    img = cv2.imread(path2image)
+def GetCameraPosition_chess(img, camera_int_mat,dist_coeff):
+    
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)
     ##ret = False
     if not ret:
+        print("No chess corners found for this image")
         return None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-    
 #    cv2.imshow('img',gray)
 #    cv2.waitKey(3000)
 #    cv2.destroyAllWindows()
@@ -110,23 +110,70 @@ def GetMatchedFeatures(img1,img2):
     #img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
     return kp1,kp2
 
+def GetMatchedFeatures(img1, img2):
+        
+    # Initiate ORB detector
+    orb = cv2.ORB_create()
+    
+    # find the keypoints and descriptors with ORB
+    kp1, des1 = orb.detectAndCompute(img1,None)
+    kp2, des2 = orb.detectAndCompute(img2,None)
+    
+    # create BFMatcher object
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    
+    # Match descriptors.
+    matches = bf.match(des1,des2)
+    
+    # Sort them in the order of their distance.
+    matches = sorted(matches, key = lambda x:x.distance)
+    l = []
+    r = []
+    #l.append(kp1[matches[0].trainIdx].pt)
+    
+    for i in range(len(matches)):
+        l.append( kp1[matches[i].trainIdx].pt)
+        r.append( kp2[matches[i].queryIdx].pt)
+    return np.transpose(r),np.transpose(l)
+
 print("\n\n\n\n\n\n\n")
 
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
     mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
     
-path = mainPath + "Intrinsic calibration files/OpenCV Demo/"
+int_calib_path1 = mainPath + "Intrinsic calibration files/OpenCV Demo/"
+int_calib_path2 = mainPath + "Intrinsic calibration files/OpenCV Demo/"
 
 
-cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(path))
-print (cam1_int_matrix)
+cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
+cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
+#print (cam1_int_matrix)
 #print (cam1_dist_coeff)
 
-retval, rvec, tvec = GetCameraPosition(path+"left04.jpg",cam1_int_matrix,cam1_dist_coeff)
-print (GetCamera3x4ProjMat(rvec,tvec))
+#i01 = cv2.imread(mainPath+"rep/Debug media/0cam1.jpeg")
+#i02 = cv2.imread(mainPath+"rep/Debug media/0cam2.jpeg")
 
-x,y = GetFirstChessImageMatches(cv2.imread(path+"left04.jpg"))
+i01 = cv2.imread(int_calib_path1+"left04.jpg")
+i02 = cv2.imread(int_calib_path1+"left05.jpg")
+
+i11 = cv2.imread(mainPath+"rep/Debug media/1cam1.jpeg")
+i12 = cv2.imread(mainPath+"rep/Debug media/1cam2.jpeg")
+
+retval, rvec, tvec = GetCameraPosition_chess(i01,cam1_int_matrix,cam1_dist_coeff)
+cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
+
+retval, rvec, tvec = GetCameraPosition_chess(i02,cam2_int_matrix,cam2_dist_coeff)
+cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
+
+#projPoints1 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
+#projPoints2 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
+
+p1,p2 = GetMatchedFeatures(i01,i02)
+
+#np.transpose(np.array([[1,2],[3,4],[5,6]]))
+
+#x,y = GetFirstChessImageMatches(cv2.imread(path+"left04.jpg"))
 
 #FindChessMatches(path+"left04.jpg")
 #print res
