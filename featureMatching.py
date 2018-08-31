@@ -25,8 +25,20 @@ matches = bf.match(des1,des2)
 
 # Sort them in the order of their distance.
 matches = sorted(matches, key = lambda x:x.distance)
+l = []
+r = []
+#l.append(kp1[matches[0].trainIdx].pt)
+
+for i in range(len(matches)):
+    l.append( kp1[matches[i].trainIdx].pt)
+    r.append( kp2[matches[i].queryIdx].pt)
+    
+
+print(np.transpose(r).shape)
+print(np.transpose(l).shape)
+#print(l)
 
 # Draw first 10 matches.
 img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
-
+cv2.imwrite('sift_featureMatched.jpg',img3)
 plt.imshow(img3),plt.show()
