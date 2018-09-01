@@ -91,28 +91,6 @@ def GetFirstChessImageMatches(img):
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)    
     return GetObjectPoints(), corners_improved      
 
-def GetMatchedFeatures(img1,img2):
-    #img1 = cv2.imread('0cam1.jpeg',1)          # queryImage
-    #img2 = cv2.imread('0cam2.jpeg',1)
-    
-    # Initiate ORB detector
-    orb = cv2.ORB_create()
-    
-    # find the keypoints and descriptors with ORB
-    kp1, des1 = orb.detectAndCompute(img1,None)
-    kp2, des2 = orb.detectAndCompute(img2,None)
-    
-    # create BFMatcher object
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-    
-    # Match descriptors.
-    matches = bf.match(des1,des2)
-    
-    # Sort them in the order of their distance.
-    matches = sorted(matches, key = lambda x:x.distance)
-    
-    # Draw first 10 matches.
-    img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
     return kp1,kp2
 
 def GetMatchedFeatures(img1, img2):
@@ -136,28 +114,48 @@ def GetMatchedFeatures(img1, img2):
     r = []
     #l.append(kp1[matches[0].trainIdx].pt)
     
+    # Draw first 3 matches.
+#    img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:3], flags=2,outImg=None)
+#    cv2.imshow('img3',img3)
+#    cv2.waitKey()
+    
     for i in range(len(matches)):
-        l.append( kp1[matches[i].trainIdx].pt)
+        l.append( kp1[matches[i]. trainIdx].pt)
         r.append( kp2[matches[i].queryIdx].pt)
     return np.transpose(r),np.transpose(l)
 
+def Extract3DPoints(proj_pp,d3p):
+    #print (proj_pp.tolist())
+    #print (d3p)
+    res = []
+    for x in np.nditer(proj_pp.tolist()):
+        key = "{0},{1}".format(x[0],x[1])
+        #print ("Current key is {0}".format(key))
+        res.append(d3p[key])
+    return res
 
 
 #%%
 print("\n\n\n\n\n\n\n")
 
+print("\n\n\n\n\n\n\n")
+#print("start")
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
     mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
+
+
+need_calib=False
+if need_calib:
+    int_calib_path1 = mainPath + "Intrinsic calibration files/Left/"
+    int_calib_path2 = mainPath + "Intrinsic calibration files/Right/"
+
+
+    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
+    cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
     
-int_calib_path1 = mainPath + "Intrinsic calibration files/Left/"
-int_calib_path2 = mainPath + "Intrinsic calibration files/Right/"
 
 
-cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
-cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
-#print (cam1_int_matrix)
-#print (cam1_dist_coeff)
 firstFrameSuccessed = False
 
 i01_c = cv2.imread(mainPath+"rep/Debug media/0cam1.jpeg")
@@ -172,21 +170,30 @@ i02_g = cv2.cvtColor(i02_c,cv2.COLOR_BGR2GRAY)
 i11 = cv2.imread(mainPath+"rep/Debug media/1cam1.jpeg")
 i12 = cv2.imread(mainPath+"rep/Debug media/1cam2.jpeg")
 
-retval1, rvec, tvec = GetCameraPosition_chess(i01_c,cam1_int_matrix,cam1_dist_coeff)
-cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
+projected_1,projected_2 = GetMatchedFeatures(i01_g,i02_g)
 
-retval2, rvec, tvec = GetCameraPosition_chess(i02,cam2_int_matrix,cam2_dist_coeff)
-cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
+# Just for now :
+d3p =	{
+  "1,2": [3,4,5],
+  "10,20": [30,40,50],
+  "100,200": [300,400,500]
+}
+proj_pp = np.array([[1,2],[10,20],[100,200]]).T
+#proj_pp=[1,2]
 
-#projPoints1 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
-#projPoints2 = np.transpose(np.array([[1,2],[3,4],[5,6]]))
+D3Points = Extract3DPoints(proj_pp,d3p)
+print (D3Points)
+#%%
+if not firstFrameSuccessed:
+    retval1, rvec, tvec = GetCameraPosition_chess(i01_c,cam1_int_matrix,cam1_dist_coeff)
+    cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
 
-projected_1,projected_2 = GetMatchedFeatures(i01,i02)
+    retval2, rvec, tvec = GetCameraPosition_chess(i02_c,cam2_int_matrix,cam2_dist_coeff)
+    cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
 
-cv2.imshow('img1',np.hstack((i01_g,i01_g)))
-cv2.waitKey()
-#input("Press Enter to continue...")
-cv2.destroyAllWindows()
+#cv2.imshow('img1',np.hstack((i01_g,i01_g)))
+#cv2.waitKey()
+#cv2.destroyAllWindows()
 
 X = cv2.triangulatePoints(cam1_pm,cam2_pm,projected_1,projected_2)
 #cv2.convertPointsFromHomogeneous(
