@@ -17,7 +17,7 @@ while(True):
     
     if cv2.waitKey(1) & 0xFF == ord('t'):
         print ("Image saved")
-        im = Image.fromarray(gray)q
+        im = Image.fromarray(gray)
         im.save(str(counter)+"cam1.jpeg")
         im2 = Image.fromarray(gray2)
         im2.save(str(counter)+"cam2.jpeg")

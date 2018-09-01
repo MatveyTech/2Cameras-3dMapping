@@ -24,7 +24,7 @@ bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 matches = bf.match(des1,des2)
 
 # Sort them in the order of their distance.
-matches = sorted(matches, key = lambda x:x.distance)
+matches = sorted(matches, key = lambda x:x.distance, reverse=True)
 l = []
 r = []
 #l.append(kp1[matches[0].trainIdx].pt)
@@ -39,6 +39,6 @@ print(np.transpose(l).shape)
 #print(l)
 
 # Draw first 10 matches.
-img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
+img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:5] ,None, flags=2)
 cv2.imwrite('sift_featureMatched.jpg',img3)
 plt.imshow(img3),plt.show()

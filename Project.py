@@ -112,7 +112,7 @@ def GetMatchedFeatures(img1,img2):
     matches = sorted(matches, key = lambda x:x.distance)
     
     # Draw first 10 matches.
-    #img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
+    img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches ,None, flags=2)
     return kp1,kp2
 
 def GetMatchedFeatures(img1, img2):
