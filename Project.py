@@ -23,7 +23,7 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 def GetObjectPoints():
     res = np.zeros((chess_h*chess_w,3), np.float32)
     res[:,:2] = np.mgrid[0:chess_w,0:chess_h].T.reshape(-1,2) 
-    res = res * 25
+    res = res * 27
     return res
 
 
@@ -240,14 +240,17 @@ cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 import numpy as np
 import cv2
 i=0
-cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video.avi")
-cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video2.avi")
+cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
+cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
 firstFrameDone=False
 while(cap1.isOpened()):
+    i=i+1
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
     if not ret1 or not ret2:
         break
+    if i<20:
+        continue
     gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     if not firstFrameDone:
@@ -263,16 +266,16 @@ while(cap1.isOpened()):
         im1_f = features[0]
         im2_f = features[1]
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
-        p3d = triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        p3d = TriangulatePoints()
         
-#    cv2.imshow('frame',gray)
-#    if cv2.waitKey(20) & 0xFF == ord('q'):
+#    cv2.imshow('frame',gray1)
+#    if cv2.waitKey(1000) & 0xFF == ord('q'):
 #        break
-#    if i==0:
-#        cv2.imwrite(mainPath + "rep/Debug media/video_frame3.jpeg", gray)
-#    if i==1:
-#        cv2.imwrite(mainPath + "rep/Debug media/video_frame4.jpeg", gray)
-    i=i+1
+    if i==20:
+        cv2.imwrite(mainPath + "rep/Debug media/video1_frame1.jpeg", gray1)
+        cv2.imwrite(mainPath + "rep/Debug media/video1_frame2.jpeg", gray2)
+    
+    
 cap1.release()
 cap2.release()
 cv2.destroyAllWindows()
