@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from PIL import Image
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 counter = 0
 while(True):
