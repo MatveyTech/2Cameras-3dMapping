@@ -81,11 +81,14 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff):
         print("No chess corners found for this image")
         return False,None,None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+    xx= corners_improved[0][0][0]
+    yy =corners_improved[0][0][1]
 
     img = cv2.drawChessboardCorners(img, (chess_w,chess_h), corners_improved,ret)
-#    cv2.imshow('img',img)
-#    cv2.waitKey(10000)
-#    cv2.destroyAllWindows()
+    cv2.circle(img, (xx,yy), 10, (255,0,255), -1)
+    cv2.imshow('img',img)
+    cv2.waitKey(10000)
+    cv2.destroyAllWindows()
 
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
 
@@ -246,7 +249,6 @@ cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
 firstFrameDone=False
 while(cap1.isOpened()):
     i=i+1
-    print(str(i))
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
     if not ret1 or not ret2:
@@ -265,8 +267,17 @@ while(cap1.isOpened()):
         cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
         
         im1_f,im2_f = FindCommonFeatures(frame1,frame2)
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
-        p3d = TriangulatePoints()
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        p3d_orig = p3d
+        p3d/= p3d[3]
+        p3d=p3d[0:3]
+        p3d = p3d.T
+        #print (p3d)
+        np.save("testout", p3d)
+        sss = np.load("testout.npy")
+        #p3d = TriangulatePoints()
+        
+        break
         firstFrameDone=True
     im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
     print(str(i)+" Num of features "+str(len(im1_f)))
@@ -282,6 +293,10 @@ cap1.release()
 cap2.release()
 cv2.destroyAllWindows()
 print(i)
+#%%
+path = mainPath + "rep/Debug media/loc1.jpg"
+img = cv2.imread(path)
+retval1, rvec, tvec = GetCameraPosition_chess(img,cam1_int_matrix,cam1_dist_coeff)
 
 
 

@@ -62,4 +62,4 @@ def FindCommonFeatures(img1, img2,img_num=0):
         cv2.imshow("Result", res)    
         cv2.waitKey()
         cv2.destroyAllWindows()
-    return res1,res2
+    return np.asarray(res1).T,np.asarray(res2).T
