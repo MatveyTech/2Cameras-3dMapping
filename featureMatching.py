@@ -6,6 +6,10 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt 
+
+mainPath = ""
+if os.path.isdir("C:/Users/matvey/"):
+    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
   
 img1 = cv2.imread('0cam1.jpeg',1)          # queryImage
 img2 = cv2.imread('0cam2.jpeg',1)
