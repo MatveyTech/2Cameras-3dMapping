@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import glob
 import os
+from FM import FindCommonFeatures
 
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
@@ -23,11 +24,12 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 def GetObjectPoints():
     res = np.zeros((chess_h*chess_w,3), np.float32)
     res[:,:2] = np.mgrid[0:chess_w,0:chess_h].T.reshape(-1,2) 
+    res = res * 27
     return res
 
 
 def GetIntrinsicMatrix(pathToImages):
-
+    print ("Calibrating from:\n"+pathToImages)
     
 # termination criteria    
     objp = GetObjectPoints()
@@ -60,7 +62,7 @@ def GetIntrinsicMatrix(pathToImages):
 #            img = cv2.drawChessboardCorners(img, (7,6), corners_improved,ret)
 #            cv2.imshow('img',img)
 #            cv2.waitKey(1000)
-            print ("Good")
+            #print ("Good")
         else:
             print ("Bad "+fname)
     reprojection_error, camera_matrix, distortion_coefficient, rotation_v,\
@@ -79,9 +81,15 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff):
         print("No chess corners found for this image")
         return False,None,None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-#    cv2.imshow('img',gray)
-#    cv2.waitKey(3000)
-#    cv2.destroyAllWindows()
+    xx= corners_improved[0][0][0]
+    yy =corners_improved[0][0][1]
+
+    img = cv2.drawChessboardCorners(img, (chess_w,chess_h), corners_improved,ret)
+    cv2.circle(img, (xx,yy), 10, (255,0,255), -1)
+    cv2.imshow('img',img)
+    cv2.waitKey(10000)
+    cv2.destroyAllWindows()
+
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
 
 def GetCamera3x4ProjMat(rvec, tvec):
@@ -139,7 +147,15 @@ def Extract3DPoints(proj_pp,d3p):
         res.append(d3p[key])
     return res
 
+#def FindCommonFeatures(a,b):
+#    r1 = [(1,2),(3,4),(5,6),(7,8)]
+#    r2 = [(10,20),(30,40),(50,60),(70,80)]
+#    return r1,r2
 
+def TriangulatePoints():
+    res = [(1,2,10),(3,4,20),(5,6,30),(7,8,40)]
+    return res
+    
 #%%
 print("\n\n\n\n\n\n\n")
 
@@ -228,23 +244,59 @@ cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 import numpy as np
 import cv2
 i=0
-cap = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video2.avi")
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    if not ret:
-        break
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    cv2.imshow('frame',gray)
-    if cv2.waitKey(20) & 0xFF == ord('q'):
-        break
-    if i==0:
-        cv2.imwrite(mainPath + "rep/Debug media/video_frame3.jpeg", gray)
-    if i==1:
-        cv2.imwrite(mainPath + "rep/Debug media/video_frame4.jpeg", gray)
+cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
+cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
+firstFrameDone=False
+while(cap1.isOpened()):
     i=i+1
-cap.release()
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
+    if not ret1 or not ret2:
+        break
+    if i<20:
+        continue
+    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    if not firstFrameDone:
+        print ("firstFrameDone")
+        
+        retval1, rvec, tvec = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff)
+        cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
+        
+        retval2, rvec, tvec = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff)
+        cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
+        
+        im1_f,im2_f = FindCommonFeatures(frame1,frame2)
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        p3d_orig = p3d
+        p3d/= p3d[3]
+        p3d=p3d[0:3]
+        p3d = p3d.T
+        #print (p3d)
+        np.save("testout", p3d)
+        sss = np.load("testout.npy")
+        #p3d = TriangulatePoints()
+        
+        break
+        firstFrameDone=True
+    im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
+    print(str(i)+" Num of features "+str(len(im1_f)))
+        
+#    cv2.imshow('frame',gray1)
+#    if cv2.waitKey(1000) & 0xFF == ord('q'):
+#        break
+#    if i==20:
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame1.jpeg", gray1)
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame2.jpeg", gray2)
+    
+cap1.release()
+cap2.release()
 cv2.destroyAllWindows()
+print(i)
+#%%
+path = mainPath + "rep/Debug media/loc1.jpg"
+img = cv2.imread(path)
+retval1, rvec, tvec = GetCameraPosition_chess(img,cam1_int_matrix,cam1_dist_coeff)
 
 
 
