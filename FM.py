@@ -27,26 +27,29 @@ flann_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
 matcher = cv2.FlannBasedMatcher(flann_params, {})
 
 ## Detect and compute
-img1 = cv2.imread('0cam1.jpeg')
+img1 = cv2.imread('1.jpeg')
 gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 kpts1, descs1 = sift.detectAndCompute(gray1,None)
 
 ## As up
-img2 = cv2.imread('0cam2.jpeg')
+img2 = cv2.imread('2.jpeg')
 gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 kpts2, descs2 = sift.detectAndCompute(gray2,None)
 
 ## Ratio test
+counter = 0 
 matches = matcher.knnMatch(descs1, descs2, 2)
 matchesMask = [[0,0] for i in range(len(matches))]
 for i, (m1,m2) in enumerate(matches):
-    if m1.distance < 0.7 * m2.distance:
-        matchesMask[i] = [1,0]
-        ## Notice: How to get the index
-        pt1 = kpts1[m1.queryIdx].pt
-        pt2 = kpts2[m1.trainIdx].pt
-        print(i, pt1,pt2 )
-        if i % 5 ==0:
+    if m1.distance < 0.3 * m2.distance:
+        if counter < 40:
+            counter = counter +1 
+            matchesMask[i] = [1,0]
+            ## Notice: How to get the index
+            pt1 = kpts1[m1.queryIdx].pt
+            pt2 = kpts2[m1.trainIdx].pt
+            print(i, pt1,pt2 )
+            #if i % 5 ==0:
             ## Draw pairs in purple, to make sure the result is ok
             cv2.circle(img1, (int(pt1[0]),int(pt1[1])), 5, (255,0,255), -1)
             cv2.circle(img2, (int(pt2[0]),int(pt2[1])), 5, (255,0,255), -1)
@@ -59,4 +62,7 @@ draw_params = dict(matchColor = (255, 0,0),
                    flags = 0)
 
 res = cv2.drawMatchesKnn(img1,kpts1,img2,kpts2,matches,None,**draw_params)
-cv2.imshow("Result", res);cv2.waitKey();cv2.destroyAllWindows()
+cv2.imshow("Result", res)
+cv2.imwrite('as.jpeg',res)
+cv2.waitKey()
+cv2.destroyAllWindows()
