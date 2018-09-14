@@ -11,6 +11,10 @@ import cv2
 import glob
 import os
 
+mainPath = ""
+if os.path.isdir("C:/Users/matvey/"):
+    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
+
 chess_w = 9
 chess_h = 6
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -55,9 +59,10 @@ def GetIntrinsicMatrix(pathToImages):
                        
 #            img = cv2.drawChessboardCorners(img, (7,6), corners_improved,ret)
 #            cv2.imshow('img',img)
-#            cv2.waitKey(100)
-#            else:
-#                print ("Bad seld calibration image")
+#            cv2.waitKey(1000)
+            print ("Good")
+        else:
+            print ("Bad "+fname)
     reprojection_error, camera_matrix, distortion_coefficient, rotation_v,\
             translation_v = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
     #print ("\n\n")
@@ -208,6 +213,40 @@ X = cv2.triangulatePoints(cam1_pm,cam2_pm,projected_1,projected_2)
 ppath = mainPath + "Intrinsic calibration files/Left/"
 print (ppath)
 GetIntrinsicMatrix(ppath)
+
+#%% intrinsic calibration
+int_calib_path1 = mainPath + "rep/Debug media/LeftCalib/"
+int_calib_path2 = mainPath + "rep/Debug media/RightCalib/"
+
+
+cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
+cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
+
+#%% main loop
+
+
+import numpy as np
+import cv2
+i=0
+cap = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video2.avi")
+while(cap.isOpened()):
+    ret, frame = cap.read()
+    if not ret:
+        break
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    cv2.imshow('frame',gray)
+    if cv2.waitKey(20) & 0xFF == ord('q'):
+        break
+    if i==0:
+        cv2.imwrite(mainPath + "rep/Debug media/video_frame3.jpeg", gray)
+    if i==1:
+        cv2.imwrite(mainPath + "rep/Debug media/video_frame4.jpeg", gray)
+    i=i+1
+cap.release()
+cv2.destroyAllWindows()
+
+
 
 
 
