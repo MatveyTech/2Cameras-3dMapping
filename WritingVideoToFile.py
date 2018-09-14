@@ -10,8 +10,8 @@ import cv2
 import numpy as np
  
 # Create a VideoCapture object
-cap = cv2.VideoCapture(1)
-cap2 = cv2.VideoCapture(3)
+cap = cv2.VideoCapture(0)
+cap2 = cv2.VideoCapture(2)
  
 # Check if camera opened successfully
 if (cap.isOpened() == False): 
