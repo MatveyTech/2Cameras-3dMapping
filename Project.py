@@ -147,8 +147,8 @@ if os.path.isdir("C:/Users/matvey/"):
 
 need_calib=False
 if need_calib:
-    int_calib_path1 = mainPath + "Intrinsic calibration files/Left/"
-    int_calib_path2 = mainPath + "Intrinsic calibration files/Right/"
+    int_calib_path1 = mainPath + "rep/Debug media/LeftCalib/"
+    int_calib_path2 = mainPath + "rep/Debug media/RightCalib/"
 
 
     cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
