@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import glob
 import os
+from FM import FindCommonFeatures
 
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
@@ -143,10 +144,10 @@ def Extract3DPoints(proj_pp,d3p):
         res.append(d3p[key])
     return res
 
-def FindCommonFeatures(a,b):
-    r1 = [(1,2),(3,4),(5,6),(7,8)]
-    r2 = [(10,20),(30,40),(50,60),(70,80)]
-    return r1,r2
+#def FindCommonFeatures(a,b):
+#    r1 = [(1,2),(3,4),(5,6),(7,8)]
+#    r2 = [(10,20),(30,40),(50,60),(70,80)]
+#    return r1,r2
 
 def TriangulatePoints():
     res = [(1,2,10),(3,4,20),(5,6,30),(7,8,40)]
@@ -245,6 +246,7 @@ cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
 firstFrameDone=False
 while(cap1.isOpened()):
     i=i+1
+    print(str(i))
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
     if not ret1 or not ret2:
@@ -255,26 +257,26 @@ while(cap1.isOpened()):
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     if not firstFrameDone:
         print ("firstFrameDone")
-        firstFrameDone=True
+        
         retval1, rvec, tvec = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff)
         cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
         
         retval2, rvec, tvec = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff)
         cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
         
-        features = FindCommonFeatures(frame1,frame2)
-        im1_f = features[0]
-        im2_f = features[1]
+        im1_f,im2_f = FindCommonFeatures(frame1,frame2)
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
         p3d = TriangulatePoints()
+        firstFrameDone=True
+    im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
+    print(str(i)+" Num of features "+str(len(im1_f)))
         
 #    cv2.imshow('frame',gray1)
 #    if cv2.waitKey(1000) & 0xFF == ord('q'):
 #        break
-    if i==20:
-        cv2.imwrite(mainPath + "rep/Debug media/video1_frame1.jpeg", gray1)
-        cv2.imwrite(mainPath + "rep/Debug media/video1_frame2.jpeg", gray2)
-    
+#    if i==20:
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame1.jpeg", gray1)
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame2.jpeg", gray2)
     
 cap1.release()
 cap2.release()
