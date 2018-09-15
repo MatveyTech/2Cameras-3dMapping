@@ -72,7 +72,7 @@ def GetIntrinsicMatrix(pathToImages):
     cv2.destroyAllWindows()
     return camera_matrix,distortion_coefficient
 
-def GetCameraPosition_chess(img, camera_int_mat,dist_coeff):
+def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
     
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)
@@ -81,14 +81,16 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff):
         print("No chess corners found for this image")
         return False,None,None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-    xx= corners_improved[0][0][0]
-    yy =corners_improved[0][0][1]
 
-    img = cv2.drawChessboardCorners(img, (chess_w,chess_h), corners_improved,ret)
-    cv2.circle(img, (xx,yy), 10, (255,0,255), -1)
-    cv2.imshow('img',img)
-    cv2.waitKey(10000)
-    cv2.destroyAllWindows()
+    if showResult:
+    
+        xx= corners_improved[0][0][0]
+        yy =corners_improved[0][0][1]
+        img = cv2.drawChessboardCorners(img, (chess_w,chess_h), corners_improved,ret)
+        cv2.circle(img, (xx,yy), 10, (255,0,255), -1)
+        cv2.imshow('img',img)
+        cv2.waitKey(30000)
+        cv2.destroyAllWindows()
 
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
 
@@ -244,8 +246,8 @@ cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 import numpy as np
 import cv2
 i=0
-cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
-cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
+cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
+cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
 firstFrameDone=False
 while(cap1.isOpened()):
     i=i+1
@@ -255,6 +257,27 @@ while(cap1.isOpened()):
         break
     if i<20:
         continue
+    
+     # I N J E C T I O N #############################
+    ##################################################
+    ##################################################
+    
+    int_calib_path = mainPath + "rep/Debug media/CV/"
+    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
+    cam2_int_matrix, cam2_dist_coeff = cam1_int_matrix, cam1_dist_coeff
+    print ("INT calibration done")
+    path1 = mainPath + "rep/Debug media/CV/left01.jpeg"
+    frame1 = cv2.imread(path1)
+    
+    path4 = mainPath + "rep/Debug media/CV/left04.jpeg"
+    frame2 = cv2.imread(path4)    
+    
+    ###################################################
+    ###################################################
+    ###################################################
+    
+    
+    
     gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     if not firstFrameDone:
@@ -279,7 +302,7 @@ while(cap1.isOpened()):
         
         break
         firstFrameDone=True
-    im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
+    im1_f,im2_f = FindCommonFeatures(frame1,frame2,i) 
     print(str(i)+" Num of features "+str(len(im1_f)))
         
 #    cv2.imshow('frame',gray1)
@@ -294,11 +317,17 @@ cap2.release()
 cv2.destroyAllWindows()
 print(i)
 #%%
-path = mainPath + "rep/Debug media/loc1.jpg"
+int_calib_path = mainPath + "rep/Debug media/CV/"
+cam_int_matrix, cam_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
+print ("INT calibration done")
+path = mainPath + "rep/Debug media/CV/left01.jpeg"
 img = cv2.imread(path)
-retval1, rvec, tvec = GetCameraPosition_chess(img,cam1_int_matrix,cam1_dist_coeff)
+retval, rvec, tvec = GetCameraPosition_chess(img,cam_int_matrix,cam_dist_coeff)
+print (tvec)
+#%%
 
 
+print (tvec)
 
 
 
