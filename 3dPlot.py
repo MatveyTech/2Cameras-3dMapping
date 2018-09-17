@@ -6,8 +6,10 @@ from matplotlib import pyplot as plt
 mu_vec1 = np.array([0,0,0]) # mean vector
 cov_mat1 = np.array([[1,0,0],[0,1,0],[0,0,1]]) # covariance matrix
 
-sss = np.load("testout.npy")
- 
+sss = np.load("testout77.npy")
+#sss[:,2]=0
+#sss[:,1]=0
+#sss[:,0]=0
 # class1_sample.shape -> (20, 3), 20 rows, 3 columns
 
 fig = plt.figure(figsize=(16,16))
