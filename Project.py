@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ra# -*- coding: utf-8 -*-
 """
 Created on Fri Aug  3 12:24:04 2018
 
@@ -93,10 +93,12 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
         cv2.destroyAllWindows()
 
     return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
+    return rres,corners_improved
 
-def GetCamera3x4ProjMat(rvec, tvec):
+def GetCamera3x4ProjMat(rvec, tvec,K):
     res = cv2.Rodrigues(rvec)[0]
-    return np.hstack((res,tvec))
+    temp = np.hstack((res,tvec))
+    return np.dot(K,temp)
 
 
 def GetFirstChessImageMatches(img):
@@ -181,7 +183,7 @@ if need_calib:
 
 firstFrameSuccessed = False
 
-i01_c = cv2.imread(mainPath+"rep/Debug media/0cam1.jpeg")
+i01_c = cv2.imread(mainPath+"rep/Debug media/Pair from left/1.jpeg")
 i01_g = cv2.cvtColor(i01_c,cv2.COLOR_BGR2GRAY)
 
 i02_c = cv2.imread(mainPath+"rep/Debug media/0cam2.jpeg")
@@ -233,8 +235,8 @@ print (ppath)
 GetIntrinsicMatrix(ppath)
 
 #%% intrinsic calibration
-int_calib_path1 = mainPath + "rep/Debug media/LeftCalib/"
-int_calib_path2 = mainPath + "rep/Debug media/RightCalib/"
+int_calib_path1 = mainPath + "rep/Debug media/LeftCalibGood/"
+int_calib_path2 = mainPath + "rep/Debug media/RightCalibGood/"
 
 
 cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
@@ -258,23 +260,23 @@ while(cap1.isOpened()):
     if i<20:
         continue
     
-     # I N J E C T I O N #############################
-    ##################################################
-    ##################################################
-    
-    int_calib_path = mainPath + "rep/Debug media/CV/"
-    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
-    cam2_int_matrix, cam2_dist_coeff = cam1_int_matrix, cam1_dist_coeff
-    print ("INT calibration done")
-    path1 = mainPath + "rep/Debug media/CV/left01.jpeg"
-    frame1 = cv2.imread(path1)
-    
-    path4 = mainPath + "rep/Debug media/CV/left04.jpeg"
-    frame2 = cv2.imread(path4)    
-    
-    ###################################################
-    ###################################################
-    ###################################################
+#     # I N J E C T I O N #############################
+#    ##################################################
+#    ##################################################
+#    
+#    int_calib_path = mainPath + "rep/Debug media/LeftCalibGood/"
+#    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
+#    cam2_int_matrix, cam2_dist_coeff = cam1_int_matrix, cam1_dist_coeff
+#    print ("INT calibration done")
+#    path1 = mainPath + "rep/Debug media/cameraLocationDebug-left/1.jpeg"
+#    frame1 = cv2.imread(path1)
+#    
+#    path4 = mainPath + "rep/Debug media/cameraLocationDebug-left/2.jpeg"
+#    frame2 = cv2.imread(path4)    
+#    
+#    ###################################################
+#    ###################################################
+#    ###################################################
     
     
     
@@ -283,21 +285,27 @@ while(cap1.isOpened()):
     if not firstFrameDone:
         print ("firstFrameDone")
         
-        retval1, rvec, tvec = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff)
-        cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
+        m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,True)
+        print(frame1.shape)
+        retval1, rvec1, tvec1 = m1
+        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+        print (cam1_pm)
         
-        retval2, rvec, tvec = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff)
-        cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
-        
+        m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,True)
+        retval2, rvec2, tvec2 = m2
+        cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+        print (cam2_pm)
         im1_f,im2_f = FindCommonFeatures(frame1,frame2)
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d/= p3d[3]
         p3d=p3d[0:3]
         p3d = p3d.T
         #print (p3d)
-        np.save("testout", p3d)
-        sss = np.load("testout.npy")
+        np.save("testout77", p3d)
+        #sss = np.load("testout.npy")
         #p3d = TriangulatePoints()
         
         break
@@ -316,18 +324,6 @@ cap1.release()
 cap2.release()
 cv2.destroyAllWindows()
 print(i)
-#%%
-int_calib_path = mainPath + "rep/Debug media/CV/"
-cam_int_matrix, cam_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
-print ("INT calibration done")
-path = mainPath + "rep/Debug media/CV/left01.jpeg"
-img = cv2.imread(path)
-retval, rvec, tvec = GetCameraPosition_chess(img,cam_int_matrix,cam_dist_coeff)
-print (tvec)
-#%%
-
-
-print (tvec)
 
 
 

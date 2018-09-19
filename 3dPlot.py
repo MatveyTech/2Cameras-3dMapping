@@ -7,6 +7,7 @@ mu_vec1 = np.array([0,0,0]) # mean vector
 cov_mat1 = np.array([[1,0,0],[0,1,0],[0,0,1]]) # covariance matrix
 
 sss = np.load("testout77.npy")
+
 #sss[:,2]=0
 #sss[:,1]=0
 #sss[:,0]=0
@@ -14,11 +15,10 @@ sss = np.load("testout77.npy")
 
 fig = plt.figure(figsize=(16,16))
 ax = fig.add_subplot(111, projection='3d')
-print(sss)
 for s in sss:
     ax.scatter(s[0], s[1], s[2],marker='.', color='red', s=40, label='class 1')
     text = str(int(s[0])) + ', ' + str(int(s[1])) + ', ' + str(int(s[2]))
-    ax.text(int(s[0]), int(s[1]), int(s[2]), text, zdir=(1, 1, 1))
+    #ax.text(int(s[0]), int(s[1]), int(s[2]), text, zdir=(1, 1, 1))
 #ax.scatter(class1_sample[:,0], class1_sample[:,1], class1_sample[:,2], 
 #   marker='x', color='blue', s=40, label='class 1')
 #ax.scatter(class2_sample[:,0], class2_sample[:,1], class2_sample[:,2], 
