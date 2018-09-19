@@ -1,5 +1,5 @@
 def FindCommonFeatures(img1, img2,img_num=0): 
-    visualFeedback=True
+    visualFeedback=False
     import numpy as np
     import cv2
     from matplotlib import pyplot as plt

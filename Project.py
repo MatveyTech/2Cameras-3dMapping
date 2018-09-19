@@ -11,6 +11,7 @@ import cv2
 import glob
 import os
 from FM import FindCommonFeatures
+import math
 
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
@@ -81,7 +82,6 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
         print("No chess corners found for this image")
         return False,None,None
     corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-
     if showResult:
     
         xx= corners_improved[0][0][0]
@@ -91,7 +91,7 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
         cv2.imshow('img',img)
         cv2.waitKey(30000)
         cv2.destroyAllWindows()
-
+    
     rres = cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
     return rres,corners_improved
 
@@ -160,9 +160,28 @@ def TriangulatePoints():
     res = [(1,2,10),(3,4,20),(5,6,30),(7,8,40)]
     return res
 
-def SanityCheck(wp,ip,K):
-    
- 
+def CalculateDistance(p1,p2):  
+     dist = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)  
+     return dist  
+
+def SanityCheck(wp,ip,K,dist_coeff):     
+     retval, rvec, tvec = cv2.solvePnP(wp,ip,K,dist_coeff)
+     cam_pm = GetCamera3x4ProjMat(rvec,tvec,K)
+     hg_wp = np.vstack((wp.T,np.ones(54))).T
+     res=[]
+     for x in  hg_wp:
+         x2 = np.dot(cam1_pm,x)
+         x2/=x2[2]
+         res.append(x2[0:2])
+     res = np.asarray(res)
+     ip = ip.reshape(ip.shape[0],2)
+     summ = 0
+     for x in range(0, ip.shape[0]):
+         d = CalculateDistance(res[x],ip[x])
+         print(d)
+         summ = summ + math.sqrt(d)
+     print("The LS is: %f" % summ)
+     return res,ip
 
 #%% intrinsic calibration
 int_calib_path1 = mainPath + "rep/Debug media/LeftCalibGood/"
@@ -213,18 +232,18 @@ while(cap1.isOpened()):
     gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     if not firstFrameDone:
-        print ("firstFrameDone")
+        #print ("firstFrameDone")
         
-        m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,True)
-        print(frame1.shape)
+        m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
-        print (cam1_pm)
+        SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
         
-        m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,True)
+        m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
         retval2, rvec2, tvec2 = m2
         cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
-        print (cam2_pm)
+        SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
+        
         im1_f,im2_f = FindCommonFeatures(frame1,frame2)
         
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
@@ -241,7 +260,7 @@ while(cap1.isOpened()):
         break
         firstFrameDone=True
     im1_f,im2_f = FindCommonFeatures(frame1,frame2,i) 
-    print(str(i)+" Num of features "+str(len(im1_f)))
+    #print(str(i)+" Num of features "+str(len(im1_f)))
         
 #    cv2.imshow('frame',gray1)
 #    if cv2.waitKey(1000) & 0xFF == ord('q'):
@@ -253,8 +272,9 @@ while(cap1.isOpened()):
 cap1.release()
 cap2.release()
 cv2.destroyAllWindows()
-print(i)
+#%%
 
+    
 
 
 
