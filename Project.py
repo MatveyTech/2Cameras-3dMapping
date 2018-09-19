@@ -92,7 +92,7 @@ def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
         cv2.waitKey(30000)
         cv2.destroyAllWindows()
 
-    return cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
+    rres = cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
     return rres,corners_improved
 
 def GetCamera3x4ProjMat(rvec, tvec,K):
@@ -270,7 +270,7 @@ while(cap1.isOpened()):
 #    print ("INT calibration done")
 #    path1 = mainPath + "rep/Debug media/cameraLocationDebug-left/1.jpeg"
 #    frame1 = cv2.imread(path1)
-#    
+#    q
 #    path4 = mainPath + "rep/Debug media/cameraLocationDebug-left/2.jpeg"
 #    frame2 = cv2.imread(path4)    
 #    
