@@ -162,7 +162,80 @@ def TriangulatePoints():
 
 def SanityCheck(wp,ip,K):
     
- 
+    
+#%%
+print("\n\n\n\n\n\n\n")
+
+print("\n\n\n\n\n\n\n")
+#print("start")
+mainPath = ""
+if os.path.isdir("C:/Users/matvey/"):
+    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
+
+
+need_calib=False
+if need_calib:
+    int_calib_path1 = mainPath + "rep/Debug media/LeftCalib/"
+    int_calib_path2 = mainPath + "rep/Debug media/RightCalib/"
+
+
+    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
+    cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
+    
+
+
+firstFrameSuccessed = False
+
+i01_c = cv2.imread(mainPath+"rep/Debug media/Pair from left/1.jpeg")
+i01_g = cv2.cvtColor(i01_c,cv2.COLOR_BGR2GRAY)
+
+i02_c = cv2.imread(mainPath+"rep/Debug media/0cam2.jpeg")
+i02_g = cv2.cvtColor(i02_c,cv2.COLOR_BGR2GRAY)
+
+#i01 = cv2.imread(int_calib_path1+"left04.jpg")
+#i02 = cv2.imread(int_calib_path1+"left05.jpg")
+
+i11 = cv2.imread(mainPath+"rep/Debug media/1cam1.jpeg")
+i12 = cv2.imread(mainPath+"rep/Debug media/1cam2.jpeg")
+
+projected_1,projected_2 = GetMatchedFeatures(i01_g,i02_g)
+
+# Just for now :
+d3p =	{
+  "1,2": [3,4,5],
+  "10,20": [30,40,50],
+  "100,200": [300,400,500]
+}
+proj_pp = np.array([[1,2],[10,20],[100,200]]).T
+#proj_pp=[1,2]
+
+D3Points = Extract3DPoints(proj_pp,d3p)
+print (D3Points)
+#%%
+if not firstFrameSuccessed:
+    retval1, rvec, tvec = GetCameraPosition_chess(i01_c,cam1_int_matrix,cam1_dist_coeff)
+    cam1_pm = GetCamera3x4ProjMat(rvec,tvec)
+
+    retval2, rvec, tvec = GetCameraPosition_chess(i02_c,cam2_int_matrix,cam2_dist_coeff)
+    cam2_pm = GetCamera3x4ProjMat(rvec,tvec)
+
+#cv2.imshow('img1',np.hstack((i01_g,i01_g)))
+#cv2.waitKey()
+#cv2.destroyAllWindows()
+
+X = cv2.triangulatePoints(cam1_pm,cam2_pm,projected_1,projected_2)
+#cv2.convertPointsFromHomogeneous(
+#np.transpose(np.array([[1,2],[3,4],[5,6]]))
+
+#x,y = GetFirstChessImageMatches(cv2.imread(path+"left04.jpg"))
+
+#FindChessMatches(path+"left04.jpg")
+#print res
+
+#%%
+ppath = mainPath + "Intrinsic calibration files/Left/"
+print (ppath)
+GetIntrinsicMatrix(ppath)
 
 #%% intrinsic calibration
 int_calib_path1 = mainPath + "rep/Debug media/LeftCalibGood/"
