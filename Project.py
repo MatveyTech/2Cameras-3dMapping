@@ -1,4 +1,4 @@
-ra# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Fri Aug  3 12:24:04 2018
 
@@ -183,7 +183,7 @@ def SanityCheck(wp,ip,K,dist_coeff):
          d = CalculateDistance(res[x],ip[x])
          #print(d)
          summ = summ + math.sqrt(d)
-     if(summ>70):
+     if(summ>66):
          print(R+"\n\n\n\n\n    W A R N I N G. The sanity check value is:%f\n\n\n\n\n" % summ)
          print(W)
      return res,ip
@@ -197,7 +197,30 @@ cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
 cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 
 #%% main loop
-
+def Match2Dand3D(frame,prev_frame,prev_im_f,pr_p3d):
+#    cv2.imshow('frame',frame)
+#    cv2.imshow('prev_frame',prev_frame)
+#    cv2.waitKey(10000)
+    f1,f2 = FindCommonFeatures(frame,prev_frame)
+    f1=np.unique(f1.T,axis=0)
+    f2=np.unique(f2.T,axis=0)
+    prev_im_f = prev_im_f.T
+    li_curr=[]
+    li_3d=[]
+    for ii in range(0, f2.shape[0]):
+        mindist=99999
+        j_idx=None
+        for j in range(0, prev_im_f.shape[0]):
+            dist = CalculateDistance(f2[ii],prev_im_f[j])
+            if (dist<mindist):
+                mindist = dist
+                j_idx=j
+        #print (mindist)
+        if(mindist<1):
+            #print(ii,j_idx,f1[ii],pr_p3d[j_idx])
+            li_curr.append(f1[ii])
+            li_3d.append(pr_p3d[j_idx]) 
+    return np.asarray(li_curr),np.asarray(li_3d)
 
 import numpy as np
 import cv2
@@ -205,15 +228,28 @@ i=0
 cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
 cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
 firstFrameDone=False
+p3d=None
+frame1=None
+frame2=None
+im1_f=None
+im2_f=None
 while(cap1.isOpened()):
     i=i+1
+    
+    prev_p3d=p3d
+    prev_frame1 = frame1
+    prev_frame2 = frame2   
+    prev_im1_f = im1_f
+    prev_im2_f = im2_f
+    
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
+    
     if not ret1 or not ret2:
+        print ("not ret1 or not ret2")
         break
     if i<20:
         continue
-    
 #     # I N J E C T I O N #############################
 #    ##################################################
 #    ##################################################
@@ -231,14 +267,8 @@ while(cap1.isOpened()):
 #    ###################################################
 #    ###################################################
 #    ###################################################
-    
-    
-    
-    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+      
     if not firstFrameDone:
-        #print ("firstFrameDone")
-        
         m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
@@ -250,22 +280,27 @@ while(cap1.isOpened()):
         SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
         
         im1_f,im2_f = FindCommonFeatures(frame1,frame2)
+        #print(im1_f.T[0:5])
+        #print(im2_f.T[0:5])
         
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
+        #l_curr,l_3d = Match2Dand3D(frame1,frame1,im1_f,prev_p3d)
+       # print(im1_f.T[0:5])
+        
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d/= p3d[3]
         p3d=p3d[0:3]
         p3d = p3d.T
-        #print (p3d)
-        np.save("testout77", p3d)
-        #sss = np.load("testout.npy")
-        #p3d = TriangulatePoints()
         
-        break
+        #np.save("testout77", p3d)       
         firstFrameDone=True
-    im1_f,im2_f = FindCommonFeatures(frame1,frame2,i) 
-    #print(str(i)+" Num of features "+str(len(im1_f)))
+    else:
+        #print(prev_im1_f.T[0:5])
+        l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
+        #l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
+        break
+        #im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
         
 #    cv2.imshow('frame',gray1)
 #    if cv2.waitKey(1000) & 0xFF == ord('q'):
