@@ -13,6 +13,9 @@ import os
 from FM import FindCommonFeatures
 import math
 
+W  = '\033[0m'  # white (normal)
+R  = '\033[31m' # red
+
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
     mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
@@ -180,7 +183,9 @@ def SanityCheck(wp,ip,K,dist_coeff):
          d = CalculateDistance(res[x],ip[x])
          #print(d)
          summ = summ + math.sqrt(d)
-     print("The LS is: %f" % summ)
+     if(summ>70):
+         print(R+"\n\n\n\n\n    W A R N I N G. The sanity check value is:%f\n\n\n\n\n" % summ)
+         print(W)
      return res,ip
 
 #%% intrinsic calibration
