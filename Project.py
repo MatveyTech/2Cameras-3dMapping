@@ -170,7 +170,7 @@ def SanityCheck(wp,ip,K,dist_coeff):
      hg_wp = np.vstack((wp.T,np.ones(54))).T
      res=[]
      for x in  hg_wp:
-         x2 = np.dot(cam1_pm,x)
+         x2 = np.dot(cam_pm,x)
          x2/=x2[2]
          res.append(x2[0:2])
      res = np.asarray(res)
@@ -178,7 +178,7 @@ def SanityCheck(wp,ip,K,dist_coeff):
      summ = 0
      for x in range(0, ip.shape[0]):
          d = CalculateDistance(res[x],ip[x])
-         print(d)
+         #print(d)
          summ = summ + math.sqrt(d)
      print("The LS is: %f" % summ)
      return res,ip
