@@ -32,7 +32,32 @@ def set_axes_equal(ax):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
     
 def RemoveOutliers(points_list):
-    return points_list
+
+    data = np.array(points_list)
+    # split to x,y,z 
+    x_pos, y_pos, z_pos = data.T
+    #points_list = x;
+    #elements = np.array(points_list)
+
+    mean_x = np.mean(x_pos, axis=0)
+    mean_y = np.mean(y_pos, axis=0)
+    mean_z = np.mean(z_pos, axis=0)
+    
+    sd_x = np.std(x_pos, axis=0)
+    sd_y = np.std(y_pos, axis=0)
+    sd_z = np.std(z_pos, axis=0)
+
+    final_list = [x for x in points_list if (x[0] > mean_x - 2 * sd_x)]
+    final_list = [x for x in final_list if (x[0] < mean_x + 2 * sd_x)]
+
+    final_list = [y for y in final_list if (y[1] > mean_y - 2 * sd_y)]
+    final_list = [y for y in final_list if (y[1] < mean_y + 2 * sd_y)]
+
+    final_list = [z for z in final_list if (z[2] > mean_z - 2 * sd_z)]
+    final_list = [z for z in final_list if (z[2] < mean_z + 2 * sd_z)]
+    
+    print(final_list)
+    return final_list
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
@@ -40,6 +65,8 @@ ax.set_aspect('equal')
 
 sss = np.load("testout77.npy")
 sss = RemoveOutliers(sss)
+
+
 for s in sss:
     ax.scatter(s[0], s[1], s[2],marker='.', color='red', s=40, label='class 1')
     text = str(int(s[0])) + ', ' + str(int(s[1])) + ', ' + str(int(s[2]))
