@@ -30,12 +30,16 @@ def set_axes_equal(ax):
     ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+    
+def RemoveOutliers(points_list):
+    return points_list
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
 sss = np.load("testout77.npy")
+sss = RemoveOutliers(sss)
 for s in sss:
     ax.scatter(s[0], s[1], s[2],marker='.', color='red', s=40, label='class 1')
     text = str(int(s[0])) + ', ' + str(int(s[1])) + ', ' + str(int(s[2]))
