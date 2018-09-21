@@ -267,8 +267,9 @@ while(cap1.isOpened()):
 #    ###################################################
 #    ###################################################
 #    ###################################################
-      
+    
     if not firstFrameDone:
+        
         m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
@@ -293,7 +294,7 @@ while(cap1.isOpened()):
         p3d=p3d[0:3]
         p3d = p3d.T
         
-        #np.save("testout77", p3d)       
+        np.save("testout77", p3d)       
         firstFrameDone=True
     else:
         #print(prev_im1_f.T[0:5])

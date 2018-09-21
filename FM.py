@@ -23,26 +23,23 @@ def FindCommonFeatures(img1, img2,img_num=0):
     ## Ratio test
     res1=[]
     res2=[]
-    counter = 0 
     matches = matcher.knnMatch(descs1, descs2, 2)
     matchesMask = [[0,0] for i in range(len(matches))]
     for i, (m1,m2) in enumerate(matches):
         if m1.distance < 0.35 * m2.distance:
-            if counter < 40:
-                counter = counter +1 
-                matchesMask[i] = [1,0]
+            matchesMask[i] = [1,0]
                 ## Notice: How to get the index
-                pt1 = kpts1[m1.queryIdx].pt
-                pt2 = kpts2[m1.trainIdx].pt
-                if visualFeedback:
-                    print(i, pt1,pt2 )
-                res1.append(pt1)
-                res2.append(pt2)
-                #if i % 5 ==0:
-                ## Draw pairs in purple, to make sure the result is ok
-                if visualFeedback:
-                    cv2.circle(img1, (int(pt1[0]),int(pt1[1])), 5, (255,0,255), -1)
-                    cv2.circle(img2, (int(pt2[0]),int(pt2[1])), 5, (255,0,255), -1)
+            pt1 = kpts1[m1.queryIdx].pt
+            pt2 = kpts2[m1.trainIdx].pt
+#                if visualFeedback:
+#                    print(i, pt1,pt2 )
+            res1.append(pt1)
+            res2.append(pt2)
+            #if i % 5 ==0:
+            ## Draw pairs in purple, to make sure the result is ok
+            if visualFeedback:
+                cv2.circle(img1, (int(pt1[0]),int(pt1[1])), 5, (255,0,255), -1)
+                cv2.circle(img2, (int(pt2[0]),int(pt2[1])), 5, (255,0,255), -1)
     
     
     ## Draw match in blue, error in red
