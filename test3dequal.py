@@ -64,7 +64,8 @@ ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
 sss = np.load("testout77.npy")
-sss = RemoveOutliers(sss)
+#print (sss)
+#sss = RemoveOutliers(sss)
 
 
 for s in sss:

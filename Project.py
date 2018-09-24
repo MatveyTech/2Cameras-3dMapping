@@ -201,11 +201,21 @@ def Match2Dand3D(frame,prev_frame,prev_im_f,pr_p3d):
 #    cv2.imshow('frame',frame)
 #    cv2.imshow('prev_frame',prev_frame)
 #    cv2.waitKey(10000)
-    f1,f2 = FindCommonFeatures(frame,prev_frame)
-    f1=np.unique(f1.T,axis=0)
-    f2=np.unique(f2.T,axis=0)
+    
+    orig_f1,orig_f2 = FindCommonFeatures(frame,prev_frame)
+#    np.save("orig_f1", orig_f1) 
+#    np.save("orig_f2", orig_f2)   
+    
+    #orig_f1 = np.load("orig_f1.npy")
+    #orig_f2 = np.load("orig_f2.npy")
+    
+#    f1=np.unique(orig_f1.T,axis=0)
+#    f2=np.unique(orig_f2.T,axis=0)
+    f1=orig_f1.T
+    f2=orig_f2.T
     prev_im_f = prev_im_f.T
     li_curr=[]
+    li_prev=[]
     li_3d=[]
     for ii in range(0, f2.shape[0]):
         mindist=99999
@@ -216,11 +226,36 @@ def Match2Dand3D(frame,prev_frame,prev_im_f,pr_p3d):
                 mindist = dist
                 j_idx=j
         #print (mindist)
-        if(mindist<1):
+        if(mindist==0):#<1
             #print(ii,j_idx,f1[ii],pr_p3d[j_idx])
+#            if len(li_curr)==0:
+#                print(dist)
+#                print(mindist)
+#                print(j)
+#                print(j_idx, pr_p3d[j_idx])
+#                print(ii, f1[ii])
             li_curr.append(f1[ii])
+            li_prev.append(f2[ii])
             li_3d.append(pr_p3d[j_idx]) 
-    return np.asarray(li_curr),np.asarray(li_3d)
+    return np.asarray(li_curr),np.asarray(li_prev),np.asarray(li_3d),orig_f1,orig_f2
+
+def MatchingSanityCheck(one,one_3d,two,two_3d):
+    #print (one)
+    #print (two)
+    for i2 in range(0, one.shape[0]):
+        for j2 in range(0, two.shape[0]):
+            if one[i2][0] == two[j2][0] and one[i2][1] == two[j2][1]:
+                #print(i2,j2)
+                if one_3d[i2][0] != two_3d[j2][0] or one_3d[i2][1] != two_3d[j2][1] or one_3d[i2][2] != two_3d[j2][2]:
+                    print("MatchingSanityCheck failed:one index%d, two index %d"%(i2,j2))
+               
+
+def Get3DFrom4D(p4d):
+    p4d/= p4d[3]
+    p4d=p4d[0:3]
+    p4d = p4d.T  
+    return p4d                  
+   
 
 import numpy as np
 import cv2
@@ -273,34 +308,67 @@ while(cap1.isOpened()):
         m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+        
+        rot1 = cv2.Rodrigues(rvec1)[0]
+#        temp1 = np.hstack((rot1,tvec1))
+#        chess2cam1 = np.vstack((temp1,[0,0,0,1]))
+#        cam1_2chess = np.linalg.inv(chess2cam1)
+        #print(np.dot(rot1,tvec1))
+        
         SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
         
         m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
         retval2, rvec2, tvec2 = m2
         cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+        rot2 = cv2.Rodrigues(rvec2)[0]
+        #print(np.dot(rot2,tvec2)) 
+        #print("____________________________________") 
+        
         SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
         
         im1_f,im2_f = FindCommonFeatures(frame1,frame2)
-        #print(im1_f.T[0:5])
-        #print(im2_f.T[0:5])
+             
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
+        p3d_orig = p3d
+        p3d=Get3DFrom4D(p3d)
         
-        #l_curr,l_3d = Match2Dand3D(frame1,frame1,im1_f,prev_p3d)
-       # print(im1_f.T[0:5])
+        #np.save("testout77", p3d)       
+        firstFrameDone=True
+    else:
+               
+        l_curr,l_prev,l_3d,l_f1,l_f2 = Match2Dand3D(frame1,prev_frame1,prev_im1_f,prev_p3d)        
+        MatchingSanityCheck(l_prev,l_3d,prev_im1_f.T,prev_p3d)
+                
+        r_curr,r_prev,r_3d,r_f1,r_f2 = Match2Dand3D(frame2,prev_frame2,prev_im2_f,prev_p3d)
+        MatchingSanityCheck(r_prev,r_3d,prev_im2_f.T,prev_p3d)
+        
+        
+        retval1, rvec1, tvec1 = cv2.solvePnP(l_3d,l_curr,cam1_int_matrix, cam1_dist_coeff)
+        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+        
+        rot1 = cv2.Rodrigues(rvec1)[0]
+        #print(np.dot(rot1,tvec1))
+        
+        retval2, rvec2, tvec2 = cv2.solvePnP(r_3d,r_curr,cam2_int_matrix, cam2_dist_coeff)
+        cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+        
+        rot2 = cv2.Rodrigues(rvec2)[0]
+       # print(np.dot(rot2,tvec2))
+        
+        
+        im1_f,im2_f = FindCommonFeatures(frame1,frame2)
         
         p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f,im2_f)
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
-        p3d/= p3d[3]
-        p3d=p3d[0:3]
-        p3d = p3d.T
-        
+        p3d=Get3DFrom4D(p3d)
+        #print (p3d.shape)
         np.save("testout77", p3d)       
-        firstFrameDone=True
-    else:
-        #print(prev_im1_f.T[0:5])
-        l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
-        #l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
         break
+        #l_common_f,l_common3d = Get3D(im1_f,l_curr,l_3d)
+        #l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
+        
         #im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
         
 #    cv2.imshow('frame',gray1)
