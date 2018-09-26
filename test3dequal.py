@@ -64,20 +64,24 @@ ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
 sss = np.load("testout77.npy")
-#print (sss)
-#sss = RemoveOutliers(sss)
+#for s in sss:
+#    print(s)
+sss = RemoveOutliers(sss)
 
-
+number = 0
+colors = ['red','green','blue','pink']
+color = 'red'
 for s in sss:
-    ax.scatter(s[0], s[1], s[2],marker='.', color='red', s=40, label='class 1')
+    number=number+1
+    ax.scatter(s[0], s[1], s[2],marker='.', color = colors[number % 4], s=40, label='class 1')
     text = str(int(s[0])) + ', ' + str(int(s[1])) + ', ' + str(int(s[2]))
+    #ax.text(int(s[0]), int(s[1]), int(s[2]), text, zdir=(1, 1, 1))
+    #text = str(int(s[0])) + ', ' + str(int(s[1])) + ', ' + str(int(s[2]))
     
-#X = np.random.rand(100)*10+5
-#Y = np.random.rand(100)*5+2.5
-#Z = np.random.rand(100)*50+25
-ax.set_xlabel('variable X')
-ax.set_ylabel('variable Y')
-ax.set_zlabel('variable Z')
+
+ax.set_xlabel(' X')
+ax.set_ylabel(' Y')
+ax.set_zlabel(' Z')
 
 
 set_axes_equal(ax)
