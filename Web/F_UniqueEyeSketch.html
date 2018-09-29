@@ -1,0 +1,75 @@
+<h5>Yakov lanczner, Merav Joseph</h5>
+<h4>The goal of the project is to create an eye sketch using a dynamic programing algorithm.<br>
+</h4>
+
+<b><u>Demonstration:</u></b>
+<br>
+<P>A short clip explaining our project
+<br>
+[wpdevart_youtube]mC08Y5Hdceg[/wpdevart_youtube]
+</p>
+<p>
+<b><u>Code:</u></b>
+<br>
+<br>
+The algorithm can be found <a href="http://www.geeksforgeeks.org/shortest-path-exactly-k-edges-directed-weighted-graph/" target="_blank">Here</a>.<br>
+Our Main code can be found <a href="https://github.com/MeravJoseph/EyePrint" target="_blank">Here</a>.<br>
+<p>
+<b><u>Workspace:</u></b><br />
+	<br />
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/python-logo.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/python-logo-300x120.jpg" alt="" width="200px" class="alignnone size-fullwp-image-1649" /></a>
+</p>	
+	
+<p>
+<b><u>Dynamic programming:</u></b><br>
+<p> Applied to algorithms which need to solve a problem by considering smaller sub-problems,<br />
+	but these sub-problems are often repeated across many different cases.
+	By using some extra memory to remember the answers to already-seen answers,<br />
+	the run-time can be vastly decreased.</p>
+<b><u>Algorithm description:</u></b><br>
+<ol>
+<p>Our input (source image):</p>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/src.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/src-300x194.jpg" alt="" width="200" height="200" class="alignnone size-full wp-image-1651" /></a>
+	<li><p>Given an image of an eye, convert its data to a 3d representation:<br />
+	X and Y axis are the coordinates and Z is the color data.</p></li>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/3d_01.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/3d_01-300x281.jpg" alt="" width="300" height="300" class="alignnone size-full wp-image-1644" /></a>
+	<li><p>Then the eye image is recursively divided into sectors to find the optimal eye partition.<br />
+	each sector is rotated parallel to X axis.</p></li>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/rotated_slice_02.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/rotated_slice_02-300x105.jpg" alt="" width="600" height="500" class="alignnone size-full wp-image-1650" /></a>
+	<li><p>Each sector is then recursively divided to find optimal number of segments and their position.</p></li>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/figure_1.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/figure_1-300x148.jpg" alt="" width="300" height="300" class="alignnone size-full wp-image-1647" /></a>
+	<li><p>For each sector a plane that minimizes the distances of the (X,Y,Z) points from the plane is computed.</p></li>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/3d_02.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/3d_02-300x283.jpg" alt="" width="300" height="300" class="alignnone size-full wp-image-1645" /></a>
+	<li><p>A dynamic programing algorithm is used in order to calculate the optimal partition to k segments.</p></li>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/optimal_division_elbow_graph.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/optimal_division_elbow_graph-300x232.jpg" alt="" width="400" height="400" class="alignnone size-full wp-image-1648" /></a>
+	<li><p>In order to find the ideal number of partitions for the whole eye and for each sector (slice)<br />
+	a binary search is used to find the "elbow" point, <br />
+	the point that is farthest from the line that connects (1,f(1)) with (n,f(n))=(n,0),<br />
+	where (1,f(1)) is the sum of distances from the ideal plane of partition to 1 segment,<br />
+	and (n,f(n)) is the sum of distances from the ideal plane of partition to n segments.</p></li>
+	<p><br />Our output:</p>
+	<a href="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/eye_sketch.jpg"><img src="http://sites.hevra.haifa.ac.il/rbd/wp-content/uploads/sites/63/2017/07/eye_sketch-300x189.jpg" alt="" width="400" height="400" class="alignnone size-full wp-image-1646" /></a>
+
+<br>
+
+<p>
+<b><u>Imporvments to the original algorithm:</u></b><br>
+<ol>
+	<li>The code of the algorithm "the Shortest path with exactly k edges in a directed and weighted graph", <br />
+	was modified to python and combined into the project's code.</li>
+	<li>Graph data set was created to support the 3d representation.</li>
+	<li>The different stages explained in "Algorithm description" section were all implemented, <br />
+	including: 2d and 3d implemntation, modified binary search, combining algebraic regression,<br />
+	mathematical calculations(plane, distance from a point to a line, "finding the elbow point"). </li>
+</ol>
+
+</p>
+
+<p>
+<b><u>Contact us:</u></b><br>
+Yakov lanczner: <a href="mailto:yakovlan88@gmail.com" target="_blank">yakovlan88@gmail.com</a><br>
+Merav joseph: <a href="mailto:meravtyt@gmail.com" target="_blank">meravtyt@gmail.com </a> <br>
+
+<br>
+</p>
+</p>

@@ -1,0 +1,100 @@
+<h1>Reconstructing 3D scene From a two cameras</h1>
+<h5>Michael Gonic, Matvey Rzhavskiy</h5>
+<h4>Project Goal: <br />
+	To Recunstuct a 3D Scene from videos from 2 diffrent Cameras<br>
+</h4>
+
+<b><u>Demonstration:</u></b>
+<br>
+<P>TODO:A short clip explaining our project
+	<br>
+	[V_unique_eye_sketch.mp4]
+</p>
+<p>
+	<b><u>Code:</u></b>
+	<br>
+	<br>
+	all our code can be found on GITHUB <a href="https://github.com/MatveyTech/2Cameras-3dMapping">https://github.com/MatveyTech/2Cameras-3dMapping</a>.<br>
+	<p>
+		<b><u>Workspace:</u></b><br />
+		<br />
+		[P_python-logo.jpg]
+		<!--width:200px;Hight:100px-->
+		<br />
+		[P_opencv-logo.png]
+		<!--width:200px;Hight:248px-->
+		<br />
+		<p>Windows/Linux/MacOs<br /> Python 3.5 or higher<br /> OpenCV 3.4 or higher</p>
+	</p>
+
+	<p>
+		<b><u>Project description:</u></b>
+		<br>
+		<ol>
+			<p><b>Input</b>br: Two Videos shot on 2 identical video cameras from 2 diffrent angles ( slight diffrance )</p>
+			[P_src.jpg]
+			<!--width:200px;Hight:200px-->
+			<li>
+				<p>Given an image of an eye, convert its data to a 3d representation:<br />
+					X and Y axis are the coordinates and Z is the color data.</p>
+			</li>
+			[P_3d_01.jpg]
+			<!--width:300px;Hight:300px-->
+			<li>
+				<p>Then the eye image is recursively divided into sectors to find the optimal eye partition.<br />
+					each sector is rotated parallel to X axis.</p>
+			</li>
+			[P_rotated_slice_02.jpg]
+			<!--width:600px;Hight:500px-->
+			<li>
+				<p>Each sector is then recursively divided to find optimal number of segments and their position.</p>
+			</li>
+			[P_figure_1.jpg]
+			<!--width:300px;Hight:300px"-->
+			<li>
+				<p>For each sector a plane that minimizes the distances of the (X,Y,Z) points from the plane is computed.</p>
+			</li>
+			[P_3d_02.jpg]
+			<!--width:300px;Hight:300px-->
+			<li>
+				<p>A dynamic programing algorithm is used in order to calculate the optimal partition to k segments.</p>
+			</li>
+			[P_optimal_division_elbow_graph.jpg]
+			<!--width:400px;Hight:400px-->
+			<li>
+				<p>In order to find the ideal number of partitions for the whole eye and for each sector (slice)<br />
+					a binary search is used to find the "elbow" point, <br />
+					the point that is farthest from the line that connects (1,f(1)) with (n,f(n))=(n,0),<br />
+					where (1,f(1)) is the sum of distances from the ideal plane of partition to 1 segment,<br />
+					and (n,f(n)) is the sum of distances from the ideal plane of partition to n segments.</p>
+			</li>
+			<p><br />Our output:</p>
+			[P_eye_sketch.jpg]
+			<!--width:400px;Hight:400px-->
+		</ol>
+
+		<br>
+
+		<p>
+			<b><u>Imporvments to the original algorithm:</u></b><br>
+			<ol>
+				<li>The code of the algorithm "the Shortest path with exactly k edges in a directed and weighted graph", <br />
+					was modified to python and combined into the project's code.</li>
+				<li>Graph data set was created to support the 3d representation.</li>
+				<li>The different stages explained in "Algorithm description" section were all implemented, <br />
+					including: 2d and 3d implemntation, modified binary search, combining algebraic regression,<br />
+					mathematical calculations(plane, distance from a point to a line, "finding the elbow point"). </li>
+			</ol>
+
+		</p>
+
+		<p>
+			<b><u>Contact us:</u></b><br>
+			Michael Gonic: <a href="mailto:michael.gonic@gmail.com" target="_blank">michael.gonic@gmail.com</a><br>
+			Matvey Rzhavskiy: <a href="mailto:matvey.tech@gmail.com" target="_blank">matvey.tech@gmail.com </a> <br>
+
+			<br>
+
+
+		</p>
+	</p>
