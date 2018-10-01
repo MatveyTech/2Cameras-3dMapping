@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug  3 12:24:04 2018
 
-# %% Intrinsic calibration
+@author: matvey
+"""
+
+#%% Intrinsic calibration
 import numpy as np
 import cv2
 import glob
@@ -7,314 +13,251 @@ import os
 from FM import FindCommonFeatures
 import math
 
-W = '\033[0m'  # white (normal)
-R = '\033[31m'  # red
+W  = '\033[0m'  # white (normal)
+R  = '\033[31m' # red
 
 mainPath = ""
 if os.path.isdir("C:/Users/matvey/"):
     mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
 else:
     mainPath = "C:/matvery/2Cameras-3dMapping/"
+
 chess_w = 9
 chess_h = 6
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-
+#  input:  path to a folder with calibration pictures from a camera
+#  return:  camera_matrix, distortion_coefficient
 def GetObjectPoints():
-    res = np.zeros((chess_h*chess_w, 3), np.float32)
-    res[:, :2] = np.mgrid[0:chess_w, 0:chess_h].T.reshape(-1, 2)
+    """    
+    Returns 3d points in chess coordinate system 
+    """
+    res = np.zeros((chess_h*chess_w,3), np.float32)
+    res[:,:2] = np.mgrid[0:chess_w,0:chess_h].T.reshape(-1,2) 
     res = res * 27
     return res
 
-#  input:  path to a folder with calibration pictures from a camera
-#  return:  camera_matrix, distortion_coefficient
-
 
 def GetIntrinsicMatrix(pathToImages):
-    print("Calibrating from folder: \n"+pathToImages)
-
-    # termination criteria
+    """    
+    Gets path to calibration images(chess)
+    Returns cameras intrinsic matrix and the distortion coefficient
+    """
+    print ("Calibrating from:\n"+pathToImages)
+    
+    # termination criteria    
     objp = GetObjectPoints()
-
-    objpoints = []
-    imgpoints = []
+    
+    objpoints = [] 
+    imgpoints = [] 
+    
     # setting path to images
-    images = glob.glob(pathToImages+"*.jpeg")
-    # print("\n\n\n\n\n\n")
-    #print (pathToImages)
-    #print (images)
+    images = glob.glob(pathToImages+"*.jpeg")   
+    
     for fname in images:
-        img = cv2.imread(fname)
-        # if img is None:
-        #print ('No such file {0}'.format(fname))
-        # continue
-        # else:
-        #print (fname)
-
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Function that returns the corners of the ChessBoard on this image frame
-        ret, corners = cv2.findChessboardCorners(
-            gray, (chess_w, chess_h), None)
-
+        
+        img = cv2.imread(fname)       
+        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)        
+        ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)    
+        
         # True means chessboard corenrs were found
         if ret == True:
-            objpoints.append(objp)
-            corners_improved = cv2.cornerSubPix(
-                gray, corners, (11, 11), (-1, -1), criteria)
+            objpoints.append(objp)    
+            corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
             imgpoints.append(corners_improved)
-            #img = cv2.drawChessboardCorners(img, (7,6), corners_improved,ret)
-            # cv2.imshow('img',img)
-            # cv2.waitKey(1000)
-            #print ("Good")
-
-        # False means chessboard corenrs were not found
+        # False means chessboard corenrs were not found              
         else:
-            print("Bad "+fname)
+            print ("Bad "+fname)
     reprojection_error, camera_matrix, distortion_coefficient, rotation_v,\
-        translation_v = cv2.calibrateCamera(
-            objpoints, imgpoints, gray.shape[::-1], None, None)
-    #print ("\n\n")
-    #print (camera_matrix)
+            translation_v = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+  
     cv2.destroyAllWindows()
-    return camera_matrix, distortion_coefficient
+    return camera_matrix,distortion_coefficient
 
 
-def GetCameraPosition_chess(img, camera_int_mat, dist_coeff, showResult=False):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, corners = cv2.findChessboardCorners(gray, (chess_w, chess_h), None)
+def GetCameraPosition_chess(img, camera_int_mat,dist_coeff,showResult=False):
+    """    
+    returns solvePNN output on chess corners and the corners
+    """
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    ret, corners = cv2.findChessboardCorners(gray, (chess_w,chess_h),None)
     ##ret = False
     if not ret:
         print("No chess corners found for this image")
-        return False, None, None
-    corners_improved = cv2.cornerSubPix(
-        gray, corners, (11, 11), (-1, -1), criteria)
+        return False,None,None
+    corners_improved = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
     if showResult:
-
-        xx = corners_improved[0][0][0]
-        yy = corners_improved[0][0][1]
-        img = cv2.drawChessboardCorners(
-            img, (chess_w, chess_h), corners_improved, ret)
-        cv2.circle(img, (xx, yy), 10, (255, 0, 255), -1)
-        cv2.imshow('img', img)
+    
+        xx= corners_improved[0][0][0]
+        yy =corners_improved[0][0][1]
+        img = cv2.drawChessboardCorners(img, (chess_w,chess_h), corners_improved,ret)
+        cv2.circle(img, (xx,yy), 10, (255,0,255), -1)
+        cv2.imshow('img',img)
         cv2.waitKey(30000)
         cv2.destroyAllWindows()
+    
+    rres = cv2.solvePnP(GetObjectPoints(),corners_improved,camera_int_mat,dist_coeff)
+    return rres,corners_improved
 
-    rres = cv2.solvePnP(GetObjectPoints(), corners_improved,
-                        camera_int_mat, dist_coeff)
-    return rres, corners_improved
-
-
-def GetCamera3x4ProjMat(rvec, tvec, K):
+def GetCamera3x4ProjMat(rvec, tvec,K):
+    """    
+    Retrieves 3x4 projection from data SolvePNP returns
+    """
     res = cv2.Rodrigues(rvec)[0]
-    temp = np.hstack((res, tvec))
-    return np.dot(K, temp)
+    temp = np.hstack((res,tvec))
+    return np.dot(K,temp)
 
 
-def GetFirstChessImageMatches(img):
-    #img = cv2.imread(img_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, corners = cv2.findChessboardCorners(gray, (chess_w, chess_h), None)
-    corners_improved = cv2.cornerSubPix(
-        gray, corners, (11, 11), (-1, -1), criteria)
-    return GetObjectPoints(), corners_improved
-
-    return kp1, kp2
+def CalculateDistance(p1,p2): 
+    """    
+    Calculates distance between 2 2d points
+    """
+    dist = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)  
+    return dist  
 
 
-def GetMatchedFeatures(img1, img2):
-
-    # Initiate ORB detector
-    orb = cv2.ORB_create()
-
-    # find the keypoints and descriptors with ORB
-    kp1, des1 = orb.detectAndCompute(img1, None)
-    kp2, des2 = orb.detectAndCompute(img2, None)
-
-    # create BFMatcher object
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-    # Match descriptors.
-    matches = bf.match(des1, des2)
-
-    # Sort them in the order of their distance.
-    matches = sorted(matches, key=lambda x: x.distance)
-    l = []
-    r = []
-    # l.append(kp1[matches[0].trainIdx].pt)
-
-    # Draw first 3 matches.
-#    img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:3], flags=2,outImg=None)
-#    cv2.imshow('img3',img3)
-#    cv2.waitKey()
-
-    for i in range(len(matches)):
-        l.append(kp1[matches[i]. trainIdx].pt)
-        r.append(kp2[matches[i].queryIdx].pt)
-    return np.transpose(r), np.transpose(l)
-
-
-def Extract3DPoints(proj_pp, d3p):
-    #print (proj_pp.tolist())
-    #print (d3p)
-    res = []
-    for x in np.nditer(proj_pp.tolist()):
-        key = "{0},{1}".format(x[0], x[1])
-        #print ("Current key is {0}".format(key))
-        res.append(d3p[key])
-    return res
-
-# def FindCommonFeatures(a,b):
-#    r1 = [(1,2),(3,4),(5,6),(7,8)]
-#    r2 = [(10,20),(30,40),(50,60),(70,80)]
-#    return r1,r2
-
-
-def TriangulatePoints():
-    res = [(1, 2, 10), (3, 4, 20), (5, 6, 30), (7, 8, 40)]
-    return res
-
-
-def CalculateDistance(p1, p2):
-    dist = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-    return dist
-
-
-def SanityCheck(wp, ip, K, dist_coeff):
-    retval, rvec, tvec = cv2.solvePnP(wp, ip, K, dist_coeff)
-    cam_pm = GetCamera3x4ProjMat(rvec, tvec, K)
-    hg_wp = np.vstack((wp.T, np.ones(54))).T
-    res = []
-    for x in hg_wp:
-        x2 = np.dot(cam_pm, x)
-        x2 /= x2[2]
+def SanityCheck(wp,ip,K,dist_coeff,threshold=65):
+    """    
+    Checks if reconstructed 2d points are good.
+    in case of distance (2d) more that threshold prints Warning to output
+    """
+    retval, rvec, tvec = cv2.solvePnP(wp,ip,K,dist_coeff)
+    cam_pm = GetCamera3x4ProjMat(rvec,tvec,K)
+    hg_wp = np.vstack((wp.T,np.ones(wp.shape[0]))).T
+    res=[]
+    for x in  hg_wp:
+        x2 = np.dot(cam_pm,x)
+        x2/=x2[2]
         res.append(x2[0:2])
     res = np.asarray(res)
-    ip = ip.reshape(ip.shape[0], 2)
+    ip = ip.reshape(ip.shape[0],2)
     summ = 0
     for x in range(0, ip.shape[0]):
-        d = CalculateDistance(res[x], ip[x])
-        # print(d)
+        d = CalculateDistance(res[x],ip[x])
+        #print(d)
         summ = summ + math.sqrt(d)
-    if(summ > 66):
-        print(
-            R+"\n\n\n\n\n    W A R N I N G. The sanity check value is:%f\n\n\n\n\n" % summ)
+    if(summ>threshold):
+        print(R+"W A R N I N G. The sanity check value is:%d. number of points is:%d" % (summ,ip.shape[0]))
         print(W)
-    return res, ip
+    #return res,ip
+    return summ
+ 
 
+def Match2Dand3D(frame,p_descriptors_till_now,p_3d_till_now):
+    """    
+    This function returns all common descriptors between current frame and @p_descriptors_till_now param
+    and its 3d value
+    """
+    sift = cv2.xfeatures2d.SIFT_create()
+    FLANN_INDEX_KDTREE = 1
+    flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    matcher = cv2.FlannBasedMatcher(flann_params, {})
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    kpts, descs = sift.detectAndCompute(gray, None)
+    
+    _common_descriptors=[]
+    _common_2d=[]
+    _common_descriptors_3d=[]
+    
+    matches = matcher.knnMatch(descs,p_descriptors_till_now,2)
+    for i, (m1, m2) in enumerate(matches):
+        if m1.distance < 0.3 * m2.distance: 
+            _common_descriptors.append(descs[m1.queryIdx])
+            _common_descriptors_3d.append(p_3d_till_now[m1.trainIdx])
+            _common_2d.append(kpts[m1.queryIdx].pt)   
+   
+    return np.asarray(_common_2d),np.asarray(_common_descriptors),np.asarray(_common_descriptors_3d)
 
-# %% intrinsic calibration
+def Get3DFrom4D(p4d):
+    """    
+    Returns 3d coordinate from the homogenius coord
+    """
+    p4d/= p4d[3]
+    p4d=p4d[0:3]
+    p4d = p4d.T  
+    return p4d 
+#%%
+def FilterPoints(points,desc):
+    times_st = 2
+    dict1 = {}
+    for i in range(0, 3):
+        vec = points[:,i]  
+        #print(z_vec)
+        hz = np.percentile(vec, 50)     
+        st_d = np.std(vec)        
+        dict1[i]= np.where((vec < hz-times_st*st_d) | (vec > hz+times_st*st_d))
+    all_ind = np.union1d(np.union1d(dict1[0][0], dict1[1][0]),dict1[2][0])
+    #print (all_ind)
+    new_p = np.delete(points, all_ind,axis=0)
+    new_desc = np.delete(desc, all_ind,axis=0)
+    return new_p,new_desc
+
+#This finction is not in use for now
+#def MatchingSanityCheck(one,one_3d,two,two_3d):
+#    #print (one)
+#    #print (two)
+#    for i2 in range(0, one.shape[0]):
+#        for j2 in range(0, two.shape[0]):
+#            if one[i2][0] == two[j2][0] and one[i2][1] == two[j2][1]:
+#                #print(i2,j2)
+#                if one_3d[i2][0] != two_3d[j2][0] or one_3d[i2][1] != two_3d[j2][1] or one_3d[i2][2] != two_3d[j2][2]:
+#                    print("MatchingSanityCheck failed:one index%d, two index %d"%(i2,j2))
+#%% intrinsic calibration for both cameras - should be run only once
 int_calib_path1 = mainPath + "rep/Debug media/LeftCalibGood/"
 int_calib_path2 = mainPath + "rep/Debug media/RightCalibGood/"
 
-# camera_matrix, distortion_coefficient
+
 cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
 cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 
-# %% main loop
+#%% main loop
 
-# input: frame: first frame, prev_frame: previous frame, prev_im_f: previous frame features, pr_p3d:
-
-
-def Match2Dand3D(frame, prev_frame, prev_im_f, pr_p3d):
-    #    cv2.imshow('frame',frame)
-    #    cv2.imshow('prev_frame',prev_frame)
-    #    cv2.waitKey(10000)
-
-    # find commonFeatures on both frames using Sift/Surf alforithem
-    orig_f1, orig_f2 = FindCommonFeatures(frame, prev_frame)
-#    np.save("orig_f1", orig_f1)
-#    np.save("orig_f2", orig_f2)
-
-    #orig_f1 = np.load("orig_f1.npy")
-    #orig_f2 = np.load("orig_f2.npy")
-
-#    f1=np.unique(orig_f1.T,axis=0)
-#    f2=np.unique(orig_f2.T,axis=0)
-    f1 = orig_f1.T
-    f2 = orig_f2.T
-    prev_im_f = prev_im_f.T
-    li_curr = []
-    li_prev = []
-    li_3d = []
-    for ii in range(0, f2.shape[0]):
-        mindist = 99999
-        j_idx = None
-        for j in range(0, prev_im_f.shape[0]):
-            dist = CalculateDistance(f2[ii], prev_im_f[j])
-            if (dist < mindist):
-                mindist = dist
-                j_idx = j
-        #print (mindist)
-        if(mindist == 0):  # <1
-            # print(ii,j_idx,f1[ii],pr_p3d[j_idx])
-            #            if len(li_curr)==0:
-            #                print(dist)
-            #                print(mindist)
-            #                print(j)
-            #                print(j_idx, pr_p3d[j_idx])
-            #                print(ii, f1[ii])
-            li_curr.append(f1[ii])
-            li_prev.append(f2[ii])
-            li_3d.append(pr_p3d[j_idx])
-    return np.asarray(li_curr), np.asarray(li_prev), np.asarray(li_3d), orig_f1, orig_f2
-
-
-def MatchingSanityCheck(one, one_3d, two, two_3d):
-    #print (one)
-    #print (two)
-    for i2 in range(0, one.shape[0]):
-        for j2 in range(0, two.shape[0]):
-            if one[i2][0] == two[j2][0] and one[i2][1] == two[j2][1]:
-                # print(i2,j2)
-                if one_3d[i2][0] != two_3d[j2][0] or one_3d[i2][1] != two_3d[j2][1] or one_3d[i2][2] != two_3d[j2][2]:
-                    print(
-                        "MatchingSanityCheck failed:one index%d, two index %d" % (i2, j2))
-
-
-def Get3DFrom4D(p4d):
-    p4d /= p4d[3]
-    p4d = p4d[0:3]
-    p4d = p4d.T
-    return p4d
 
 
 import numpy as np
 import cv2
-i = 0
-cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
-cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
-firstFrameDone = False
-p3d = None
-frame1 = None
-frame2 = None
-im1_f = None
-im2_f = None
+i=0
+#cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
+#cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
+#cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/left_v.avi")
+#cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/right_v.avi")
+cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/v3_left.avi")
+cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/v3_right.avi")
 
+
+firstFrameDone=False
+p3d=None
+all_p3d=None
+all_desc=None
+frame1=None
+frame2=None
+im1_f=None
+im2_f=None
 while(cap1.isOpened()):
-
-    i = i+1
-    # updates for next iteration
-    prev_p3d = p3d
+    i=i+1
+    #print (i)
+    prev_p3d=p3d
     prev_frame1 = frame1
-    prev_frame2 = frame2
+    prev_frame2 = frame2   
     prev_im1_f = im1_f
     prev_im2_f = im2_f
-
-    # read next frame from both videos
+    
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
-
+    
     if not ret1 or not ret2:
-        print("not ret1 or not ret2")
+        print ("not ret1 or not ret2")
+        print (ret1)
+        print (ret2)
         break
-    if i < 20:
+    if i<0:
         continue
+#    if i==60:
+#        continue
 #     # I N J E C T I O N #############################
 #    ##################################################
 #    ##################################################
-#
+#    
 #    int_calib_path = mainPath + "rep/Debug media/LeftCalibGood/"
 #    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
 #    cam2_int_matrix, cam2_dist_coeff = cam1_int_matrix, cam1_dist_coeff
@@ -323,102 +266,148 @@ while(cap1.isOpened()):
 #    frame1 = cv2.imread(path1)
 #    q
 #    path4 = mainPath + "rep/Debug media/cameraLocationDebug-left/2.jpeg"
-#    frame2 = cv2.imread(path4)
-#
+#    frame2 = cv2.imread(path4)    
+#    
 #    ###################################################
 #    ###################################################
 #    ###################################################
-
-    # first frame handaling
+    # first frame handling
     if not firstFrameDone:
-
-        #get corners of chessboard on first frame
-        m1, corners1 = GetCameraPosition_chess(
-            frame1, cam1_int_matrix, cam1_dist_coeff, False)
+        
+        print("Working on frame 1")
+        m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
-
-        #get Camera projection Matrix
-        cam1_pm = GetCamera3x4ProjMat(rvec1, tvec1, cam1_int_matrix)
-
+        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
         rot1 = cv2.Rodrigues(rvec1)[0]
 #        temp1 = np.hstack((rot1,tvec1))
 #        chess2cam1 = np.vstack((temp1,[0,0,0,1]))
 #        cam1_2chess = np.linalg.inv(chess2cam1)
-        # print(np.dot(rot1,tvec1))
-
-        SanityCheck(GetObjectPoints(), corners1,
-                    cam1_int_matrix, cam1_dist_coeff)
-
-        m2, corners2 = GetCameraPosition_chess(
-            frame2, cam2_int_matrix, cam2_dist_coeff, False)
+        #print(np.dot(rot1,tvec1))
+        
+        SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
+        
+        m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
         retval2, rvec2, tvec2 = m2
-        cam2_pm = GetCamera3x4ProjMat(rvec2, tvec2, cam2_int_matrix)
+        cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
         rot2 = cv2.Rodrigues(rvec2)[0]
-        # print(np.dot(rot2,tvec2))
-        # print("____________________________________")
-
-        SanityCheck(GetObjectPoints(), corners2,
-                    cam2_int_matrix, cam2_dist_coeff)
-
-        im1_f, im2_f = FindCommonFeatures(frame1, frame2)
-
+        #print(np.dot(rot2,tvec2)) 
+        #print("____________________________________") 
+        SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
+        
+        im1_f,im2_f,im1_desc,im2_desc = FindCommonFeatures(frame1,frame2)
         # input:  cam1_pm : cam 1 projectionMatrix, cam2_pm : cam 2 projecetionMatrix ,im1_f: frame 1 features ,im2_f: frame 2 features
         # triangulatePoints	Output array with computed 3d points. Is 3 x N.
-        p3d = cv2.triangulatePoints(cam1_pm, cam2_pm, im1_f, im2_f)
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
-        p3d = Get3DFrom4D(p3d)
-
-        #np.save("testout77", p3d)
-        firstFrameDone = True
-    else:
-
-        l_curr, l_prev, l_3d, l_f1, l_f2 = Match2Dand3D(
-            frame1, prev_frame1, prev_im1_f, prev_p3d)
-        MatchingSanityCheck(l_prev, l_3d, prev_im1_f.T, prev_p3d)
-
-        r_curr, r_prev, r_3d, r_f1, r_f2 = Match2Dand3D(
-            frame2, prev_frame2, prev_im2_f, prev_p3d)
-        MatchingSanityCheck(r_prev, r_3d, prev_im2_f.T, prev_p3d)
-
-        retval1, rvec1, tvec1 = cv2.solvePnP(
-            l_3d, l_curr, cam1_int_matrix, cam1_dist_coeff)
-        cam1_pm = GetCamera3x4ProjMat(rvec1, tvec1, cam1_int_matrix)
-
-        rot1 = cv2.Rodrigues(rvec1)[0]
-        # print(np.dot(rot1,tvec1))
-
-        retval2, rvec2, tvec2 = cv2.solvePnP(
-            r_3d, r_curr, cam2_int_matrix, cam2_dist_coeff)
-        cam2_pm = GetCamera3x4ProjMat(rvec2, tvec2, cam2_int_matrix)
-
-        rot2 = cv2.Rodrigues(rvec2)[0]
-       # print(np.dot(rot2,tvec2))
-
-        im1_f, im2_f = FindCommonFeatures(frame1, frame2)
-
-        p3d = cv2.triangulatePoints(cam1_pm, cam2_pm, im1_f, im2_f)
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
-        p3d_orig = p3d
-        p3d = Get3DFrom4D(p3d)
+        p3d=Get3DFrom4D(p3d)
+        all_p3d = p3d
+        all_desc = im1_desc
         #print (p3d.shape)
-
+        #np.save("testout77", p3d)       
+        firstFrameDone=True
+    else: 
+        if i==25:
+            break
+        print("Working on frame %d"%(i))
+        t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
+        print("Features found: Left:%d, Right:%d."%(t_im1_f.shape[0],t_im2_f.shape[0]))
+        if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
+            print ("Not enough data. Image is skipped")
+            continue
+        
+        im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
+        
+        common_2d_l,common_desc_l,common_3d_l = Match2Dand3D(frame1,all_desc,all_p3d)  
+        
+#        print ("Left shapes")
+#        print (common_3d_l.shape)
+#        print (common_2d_l.shape)
+#        
+#        print ("Right shapes")
+#        print (common_3d_r.shape)
+#        print (common_2d_r.shape)
+        
+        retval1, rvec1, tvec1 = cv2.solvePnP(common_3d_l,common_2d_l,cam1_int_matrix, cam1_dist_coeff)
+        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+        #MatchingSanityCheck(l_prev,l_3d,prev_im1_f.T,prev_p3d)
+        
+        common_2d_r,common_desc_r,common_3d_r = Match2Dand3D(frame2,all_desc,all_p3d)  
+        retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
+        cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+        #MatchingSanityCheck(r_prev,r_3d,prev_im2_f.T,prev_p3d)        
+        
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
+        
+        
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
+        p3d_orig = p3d
+        p3d=Get3DFrom4D(p3d)
+        
         #output to file
-        np.save("testout"+str(i), p3d)
-        #break
-        #l_common_f,l_common3d = Get3D(im1_f,l_curr,l_3d)
-        #l_curr,l_3d = Match2Dand3D(prev_frame1,prev_frame1,prev_im1_f,prev_p3d)
-
-        #im1_f,im2_f = FindCommonFeatures(frame1,frame2,i)
-
-#    cv2.imshow('frame',gray1)
-#    if cv2.waitKey(1000) & 0xFF == ord('q'):
+        #np.save("testout"+str(i), p3d)
+        
+        sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
+        sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
+        
+        if sc_left>100 or sc_right > 100:
+            print ("Bad frame!")
+            continue
+        
+        current3dPoints = p3d
+        currentDescriptors = im1_desc
+        current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
+        
+        
+        all_p3d = np.vstack((all_p3d,current3dPoints))
+        all_desc = np.vstack((all_desc,currentDescriptors))
+        
+        
+#    if i==26:
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame69.jpeg", frame1)
+#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame69.jpeg", frame2)
+#    if i==30:
+#        np.save("testout77", all_p3d)
 #        break
-#    if i==20:
-#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame1.jpeg", gray1)
-#        cv2.imwrite(mainPath + "rep/Debug media/video1_frame2.jpeg", gray2)
-
+np.save("testout77", all_p3d)    
 cap1.release()
 cap2.release()
 cv2.destroyAllWindows()
-# %%
+#%%
+t_im1_f,t_im2_f,t_im1_desc,t_im2_desc,m1 = FindCommonFeatures(frame1,frame2)
+print (t_im1_f.shape)
+
+t_im1_f,t_im2_f,t_im1_desc,t_im2_desc,m2 = FindCommonFeatures(frame1,frame2)
+print (t_im1_f.shape)
+
+
+
+
+#for item1 in m1[0:2]:
+for i, (m11, m12) in enumerate(m1[0:2]):
+    print(m11.distance,m12.distance)
+
+#for item2 in m2[0:2]:
+for i, (m21, m22) in enumerate(m2[0:2]):
+    print(m21.distance,m22.distance)
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

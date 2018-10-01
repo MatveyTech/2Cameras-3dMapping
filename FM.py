@@ -14,6 +14,7 @@ def FindCommonFeatures(img1, img2, img_num=0):
 
     gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     kpts1, descs1 = sift.detectAndCompute(gray1, None)
+    #print(descs1.shape)
 
     gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
     kpts2, descs2 = sift.detectAndCompute(gray2, None)
@@ -21,13 +22,16 @@ def FindCommonFeatures(img1, img2, img_num=0):
     # Ratio test
     res1 = []
     res2 = []
+    descriptors2return1 =[]
+    descriptors2return2 =[]
     # Dictionarys to store points that already been seen
     dict1 = {}
     dict2 = {}
     matches = matcher.knnMatch(descs1, descs2, 2)
+    #print (len(matches))
     matchesMask = [[0, 0] for i in range(len(matches))]
     for i, (m1, m2) in enumerate(matches):
-        if m1.distance < 0.35 * m2.distance:
+        if m1.distance < 0.3 * m2.distance:
             matchesMask[i] = [1, 0]
             # Notice: How to get the index
             pt1 = kpts1[m1.queryIdx].pt
@@ -40,6 +44,12 @@ def FindCommonFeatures(img1, img2, img_num=0):
 
                 res1.append(pt1)
                 res2.append(pt2)
+                
+                descriptors2return1.append(descs1[m1.queryIdx])
+#                print("ADDED")
+#                print(descs1[m1.queryIdx].shape)
+#                print(len(descriptors2return1))
+                descriptors2return2.append(descs2[m1.trainIdx])
                 # Draw pairs in purple, to make sure the result is ok
                 if visualFeedback:
                     print(i, pt1, pt2)
@@ -73,4 +83,4 @@ def FindCommonFeatures(img1, img2, img_num=0):
         cv2.imshow("Result", res)
         cv2.waitKey()
         cv2.destroyAllWindows()
-    return np.asarray(res1).T, np.asarray(res2).T
+    return np.asarray(res1), np.asarray(res2), np.asarray(descriptors2return1), np.asarray(descriptors2return2)

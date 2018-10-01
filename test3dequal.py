@@ -56,7 +56,7 @@ def RemoveOutliers(points_list):
     final_list = [z for z in final_list if (z[2] > mean_z - 2 * sd_z)]
     final_list = [z for z in final_list if (z[2] < mean_z + 2 * sd_z)]
     
-    print(final_list)
+    #print(final_list)
     return final_list
 
 fig = plt.figure()
@@ -64,9 +64,13 @@ ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
 sss = np.load("testout77.npy")
+print (type(sss))
+print (sss.shape)
 #for s in sss:
 #    print(s)
-sss = RemoveOutliers(sss)
+#sss = RemoveOutliers(sss)
+#print (len(sss))
+#print (sss.shape)
 
 number = 0
 colors = ['red','green','blue','pink']
