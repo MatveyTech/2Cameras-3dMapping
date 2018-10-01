@@ -87,12 +87,7 @@ for plot in plots:
     
     
     points = RemoveOutliers(points)
-    points = RemoveOutliers(points)
-    points = RemoveOutliers(points)
-    points = RemoveOutliers(points)
-    points = RemoveOutliers(points)
-    points = RemoveOutliers(points)
-    
+  
     first = True
     for point in points:
         newpoint=[[point[0],point[1],point[2],currentColor]]
