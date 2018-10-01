@@ -307,7 +307,7 @@ while(cap1.isOpened()):
         #np.save("testout77", p3d)       
         firstFrameDone=True
     else: 
-        if i==25:
+        if i==10:
             break
         print("Working on frame %d"%(i))
         t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
@@ -343,9 +343,7 @@ while(cap1.isOpened()):
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
-        
-        #output to file
-        #np.save("testout"+str(i), p3d)
+               
         
         sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
         sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
@@ -358,6 +356,8 @@ while(cap1.isOpened()):
         currentDescriptors = im1_desc
         current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
         
+        #output to file
+        np.save("testout"+str(i), current3dPoints)
         
         all_p3d = np.vstack((all_p3d,current3dPoints))
         all_desc = np.vstack((all_desc,currentDescriptors))
