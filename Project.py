@@ -12,6 +12,8 @@ import glob
 import os
 from FM import FindCommonFeatures
 import math
+from numpy.linalg import inv
+from numpy import linalg as LA
 
 W  = '\033[0m'  # white (normal)
 R  = '\033[31m' # red
@@ -192,6 +194,14 @@ def FilterPoints(points,desc):
     new_desc = np.delete(desc, all_ind,axis=0)
     return new_p,new_desc
 
+def GetCamera4x4ProjMat(rvec, tvec):
+    """    
+    Retrieves 4x4 projection matrix in homogenius coordinates
+    """
+    res = cv2.Rodrigues(rvec)[0]
+    temp = np.hstack((res,tvec))
+    return np.vstack((temp,np.asarray([0,0,0,1])))
+
 #This finction is not in use for now
 #def MatchingSanityCheck(one,one_3d,two,two_3d):
 #    #print (one)
@@ -214,6 +224,7 @@ cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
 
 
 
+#%%
 import numpy as np
 import cv2
 i=0
@@ -233,6 +244,8 @@ frame1=None
 frame2=None
 im1_f=None
 im2_f=None
+camera1_to_camera2=None
+TryToGetCameraPositionFromChess=True
 while(cap1.isOpened()):
     i=i+1
     #print (i)
@@ -282,7 +295,8 @@ while(cap1.isOpened()):
 #        temp1 = np.hstack((rot1,tvec1))
 #        chess2cam1 = np.vstack((temp1,[0,0,0,1]))
 #        cam1_2chess = np.linalg.inv(chess2cam1)
-        #print(np.dot(rot1,tvec1))
+#        print(np.dot(rot1,tvec1))
+#        print(np.dot(rot1.T,tvec1))
         
         SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
         
@@ -294,6 +308,9 @@ while(cap1.isOpened()):
         #print("____________________________________") 
         SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
         
+        c1 = GetCamera4x4ProjMat(rvec1,tvec1)
+        c2 = GetCamera4x4ProjMat(rvec2,tvec2)
+        camera1_to_camera2 = np.dot(c2,inv(c1))
         im1_f,im2_f,im1_desc,im2_desc = FindCommonFeatures(frame1,frame2)
         # input:  cam1_pm : cam 1 projectionMatrix, cam2_pm : cam 2 projecetionMatrix ,im1_f: frame 1 features ,im2_f: frame 2 features
         # triangulatePoints	Output array with computed 3d points. Is 3 x N.
@@ -330,13 +347,32 @@ while(cap1.isOpened()):
         
         retval1, rvec1, tvec1 = cv2.solvePnP(common_3d_l,common_2d_l,cam1_int_matrix, cam1_dist_coeff)
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+        
+        if TryToGetCameraPositionFromChess:
+            m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
+            retval1, rvec1, tvec1 = m1
+            if retval1 == True:
+                cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+            else:
+                print ("You asked to calc the camera position from the chess but there is no chess detected.Sift used.")
+                
+        rot1 = cv2.Rodrigues(rvec1)[0]
         #MatchingSanityCheck(l_prev,l_3d,prev_im1_f.T,prev_p3d)
         
-        common_2d_r,common_desc_r,common_3d_r = Match2Dand3D(frame2,all_desc,all_p3d)  
-        retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
-        cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
-        #MatchingSanityCheck(r_prev,r_3d,prev_im2_f.T,prev_p3d)        
-        
+        if True:
+            w_to_c1 = GetCamera4x4ProjMat(rvec1,tvec1)
+            w_to_c2 = np.dot(camera1_to_camera2,w_to_c1)
+            cam2_pm = np.dot(cam1_int_matrix,w_to_c2[0:3])
+        else:
+            if TryToGetCameraPositionFromChess:
+                m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
+                retval2, rvec2, tvec2 = m2
+                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+            else:
+                common_2d_r,common_desc_r,common_3d_r = Match2Dand3D(frame2,all_desc,all_p3d)  
+                retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
+                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+                    
         p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
         
         
@@ -390,8 +426,12 @@ for i, (m11, m12) in enumerate(m1[0:2]):
 #for item2 in m2[0:2]:
 for i, (m21, m22) in enumerate(m2[0:2]):
     print(m21.distance,m22.distance)
+#%%
+_c1_to_world = np.asarray([[1,0,0,5],[0,1,0,10],[0,0,1,0],[0,0,0,1]])
+_c2_to_world = np.asarray([[1,0,0,-5],[0,1,0,10],[0,0,1,0],[0,0,0,1]]),
 
-
+_c1_to_c2 = np.dot(inv(_c1_to_world),_c2_to_world)
+print(_c1_to_c2)
     
 
 

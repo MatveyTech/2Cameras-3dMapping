@@ -74,7 +74,12 @@ number = 0
 colors = ['grey','pink','red','orange','yellow','purple','green','blue']
 color = 'red'
 
-pathToOutputs = "C:/matvery/2Cameras-3dMapping/output/"
+pathToOutputs = ""
+
+if os.path.isdir("C:/Users/matvey/"):
+    pathToOutputs = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/rep/output/"
+else:
+    pathToOutputs = "C:/matvery/2Cameras-3dMapping/output/"
 
 print("Printing points from folder: \n"+pathToOutputs)
 allPoints = []
