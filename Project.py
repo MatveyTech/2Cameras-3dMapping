@@ -336,7 +336,7 @@ while(cap1.isOpened()):
         #np.save("testout77", p3d)       
         firstFrameDone=True
     else: 
-        if i==10:
+        if i==7:
             break
         print("Working on frame %d"%(i))
         t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
@@ -348,15 +348,7 @@ while(cap1.isOpened()):
         im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
         
         common_2d_l,common_desc_l,common_3d_l = Match2Dand3D(frame1,all_desc,all_p3d)  
-        
-#        print ("Left shapes")
-#        print (common_3d_l.shape)
-#        print (common_2d_l.shape)
-#        
-#        print ("Right shapes")
-#        print (common_3d_r.shape)
-#        print (common_2d_r.shape)
-        
+                
         retval1, rvec1, tvec1 = cv2.solvePnP(common_3d_l,common_2d_l,cam1_int_matrix, cam1_dist_coeff)
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
         
@@ -385,24 +377,21 @@ while(cap1.isOpened()):
                 retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
                 cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
                     
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
-        
-        
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)       
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
-               
         
         sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
         sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
         
-        if sc_left>100 or sc_right > 100:
-            print ("Bad frame!")
-            continue
+#        if sc_left>100 or sc_right > 100:
+#            print ("Bad frame!")
+#            continue
         
         current3dPoints = p3d
         currentDescriptors = im1_desc
-        current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
+        #current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
         
         #output to file
         #np.save("testout"+str(i), current3dPoints)
