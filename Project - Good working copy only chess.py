@@ -195,6 +195,7 @@ def Get3DFrom4D(p4d):
     return p4d 
 
 def FilterPoints(points,desc):
+    print("HERR")
     times_st = 2
     dict1 = {}
     for i in range(0, 3):
@@ -278,6 +279,17 @@ while(cap1.isOpened()):
         break
     if i<5:
         continue
+    
+#    m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
+#    retval1, rvec1, tvec1 = m1
+#    m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
+#    retval2, rvec2, tvec2 = m2
+#    if retval1==False:
+#        print("No chess in frame1")
+#    if retval2==False:
+#        print("No chess in frame2")
+    #continue
+    
 #    if i==60:
 #        continue
 #     # I N J E C T I O N #############################
@@ -326,8 +338,9 @@ while(cap1.isOpened()):
         im1_f,im2_f,im1_desc,im2_desc = FindCommonFeatures(frame1,frame2)
         # input:  cam1_pm : cam 1 projectionMatrix, cam2_pm : cam 2 projecetionMatrix ,im1_f: frame 1 features ,im2_f: frame 2 features
         # triangulatePoints	Output array with computed 3d points. Is 3 x N.
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
+                
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
         all_p3d = p3d
@@ -339,15 +352,14 @@ while(cap1.isOpened()):
         if i==10:
             break
         print("Working on frame %d"%(i))
-        t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
-        print("Features found: Left:%d, Right:%d."%(t_im1_f.shape[0],t_im2_f.shape[0]))
-        if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
-            print ("Not enough data. Image is skipped")
-            continue
+#        t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
+#        print("Features found: Left:%d, Right:%d."%(t_im1_f.shape[0],t_im2_f.shape[0]))
+#        if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
+#            print ("Not enough data. Image is skipped")
+#            continue        
+#        im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
         
-        im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
-        
-        common_2d_l,common_desc_l,common_3d_l = Match2Dand3D(frame1,all_desc,all_p3d)  
+        #common_2d_l,common_desc_l,common_3d_l = Match2Dand3D(frame1,all_desc,all_p3d)  
         
 #        print ("Left shapes")
 #        print (common_3d_l.shape)
@@ -357,10 +369,12 @@ while(cap1.isOpened()):
 #        print (common_3d_r.shape)
 #        print (common_2d_r.shape)
         
-        retval1, rvec1, tvec1 = cv2.solvePnP(common_3d_l,common_2d_l,cam1_int_matrix, cam1_dist_coeff)
-        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
+#        retval1, rvec1, tvec1 = cv2.solvePnP(common_3d_l,common_2d_l,cam1_int_matrix, cam1_dist_coeff)
+#        cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
         
+                
         if TryToGetCameraPositionFromChess:
+            print ("Left camera position from chess")
             m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
             retval1, rvec1, tvec1 = m1
             if retval1 == True:
@@ -370,39 +384,70 @@ while(cap1.isOpened()):
                 
         rot1 = cv2.Rodrigues(rvec1)[0]
         #MatchingSanityCheck(l_prev,l_3d,prev_im1_f.T,prev_p3d)
+       
+#        if False:
+#            w_to_c1 = GetCamera4x4ProjMat(rvec1,tvec1)
+#            w_to_c2 = np.dot(camera1_to_camera2,w_to_c1)
+#            #w_to_c2 = inv(w_to_c2)
+#            cam2_pm = np.dot(cam1_int_matrix,w_to_c2[0:3])
+#        else:
+#            if TryToGetCameraPositionFromChess:
+#                m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
+#                retval2, rvec2, tvec2 = m2
+#                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+#            else:
+#                common_2d_r,common_desc_r,common_3d_r = Match2Dand3D(frame2,all_desc,all_p3d)  
+#                retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
+#                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
         
-        if True:
-            w_to_c1 = GetCamera4x4ProjMat(rvec1,tvec1)
-            w_to_c2 = np.dot(camera1_to_camera2,w_to_c1)
-            cam2_pm = np.dot(cam1_int_matrix,w_to_c2[0:3])
-        else:
-            if TryToGetCameraPositionFromChess:
-                m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
-                retval2, rvec2, tvec2 = m2
-                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
-            else:
-                common_2d_r,common_desc_r,common_3d_r = Match2Dand3D(frame2,all_desc,all_p3d)  
-                retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
-                cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
-                    
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
         
+        m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
+        retval2, rvec2, tvec2 = m2
+        cam2_pm_old = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
+        #cam2_pm_old_noK = GetCamera3x4ProjMat(rvec2,tvec2)
+        
+        c1 = GetCamera4x4ProjMat(rvec1,tvec1)
+        c2 = GetCamera4x4ProjMat(rvec2,tvec2)
+        camera1_to_camera2 = np.dot(c2,inv(c1))
+        #camera1_to_camera2 = np.dot(inv(c2),c1)
+        
+        w_to_c1 = GetCamera4x4ProjMat(rvec1,tvec1)
+        w_to_c2 = np.dot(camera1_to_camera2,w_to_c1)
+        
+        #w_to_c2 = np.dot(w_to_c1,inv(camera1_to_camera2))
+        cam2_pm_new = np.dot(cam2_int_matrix,w_to_c2[0:3])       
+        
+        
+        cam2_pm = cam2_pm_new
+        #cam2_pm = cam2_pm_old
+        
+#        c12 = GetCamera4x4ProjMat(rvec1,tvec1)
+#        c22 = GetCamera4x4ProjMat(rvec2,tvec2)
+#        camera1_to_camera2_2 = np.dot(c22,inv(c12))        
+               
+        r1,corners1 = FindCorners(frame1)
+        r2,corners2 = FindCorners(frame2)
+        if r1==False or r2==False:
+            print("VERY VERY VERY VERY VERY VERY VERY VERY BAD")
+        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
+        
         p3d=Get3DFrom4D(p3d)
-               
+          
         
-        sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
-        sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
-        
-        if sc_left>100 or sc_right > 100:
-            print ("Bad frame!")
-            continue
+#        sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
+#        sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
+#        
+#        if sc_left>100 or sc_right > 100:
+#            print ("Bad frame!")
+#            continue
         
         current3dPoints = p3d
         currentDescriptors = im1_desc
-        current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
+        #current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
         
         #output to file
         #np.save("testout"+str(i), current3dPoints)
@@ -444,8 +489,20 @@ _c2_to_world = np.asarray([[1,0,0,-5],[0,1,0,10],[0,0,1,0],[0,0,0,1]]),
 
 _c1_to_c2 = np.dot(inv(_c1_to_world),_c2_to_world)
 print(_c1_to_c2)
-    
+#%%
+for x in range(0, 3):
+    for y in range(0, 3):
+        c1[x,y]=0
+c1[0,0]=1    
+c1[1,1]=1 
+c1[2,2]=1 
 
+for x in range(0, 3):
+    for y in range(0, 3):
+        c2[x,y]=0
+c2[0,0]=1    
+c2[1,1]=1 
+c2[2,2]=1 
 
 
 
