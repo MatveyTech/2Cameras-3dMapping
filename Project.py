@@ -336,7 +336,7 @@ while(cap1.isOpened()):
         #np.save("testout77", p3d)       
         firstFrameDone=True
     else: 
-        if i==7:
+        if i==6:
             break
         print("Working on frame %d"%(i))
         t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
@@ -344,6 +344,9 @@ while(cap1.isOpened()):
         if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
             print ("Not enough data. Image is skipped")
             continue
+#        if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
+#            print ("Not enough data. Image is skipped")
+#            continue
         
         im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
         
@@ -377,13 +380,16 @@ while(cap1.isOpened()):
                 retval2, rvec2, tvec2 = cv2.solvePnP(common_3d_r,common_2d_r,cam2_int_matrix, cam2_dist_coeff)
                 cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
                     
+        r1,corners1 = FindCorners(frame1)
+        r2,corners2 = FindCorners(frame2)
+        
         p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)       
         #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
         
-        sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
-        sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
+#        sc_left = SanityCheck(p3d,im1_f,cam1_int_matrix,cam1_dist_coeff)        
+#        sc_right = SanityCheck(p3d,im2_f,cam2_int_matrix,cam2_dist_coeff)
         
 #        if sc_left>100 or sc_right > 100:
 #            print ("Bad frame!")
