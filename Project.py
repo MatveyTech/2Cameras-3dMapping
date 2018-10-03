@@ -374,7 +374,7 @@ while(cap1.isOpened()):
         if True:
             w_to_c1 = GetCamera4x4ProjMat(rvec1,tvec1)
             w_to_c2 = np.dot(camera1_to_camera2,w_to_c1)
-            cam2_pm = np.dot(cam1_int_matrix,w_to_c2[0:3])
+            cam2_pm = np.dot(cam2_int_matrix,w_to_c2[0:3])
         else:
             if TryToGetCameraPositionFromChess:
                 m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
