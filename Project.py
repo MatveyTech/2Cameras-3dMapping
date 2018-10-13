@@ -18,10 +18,12 @@ W  = '\033[0m'  # white (normal)
 R  = '\033[31m' # red
 
 mainPath = ""
-if os.path.isdir("C:/Users/matvey/"):
-    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
-else:
-    mainPath = "C:/matvery/2Cameras-3dMapping/"
+#if os.path.isdir("C:/Users/matvey/"):
+#    mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
+#else:
+#    mainPath = "C:/matvery/2Cameras-3dMapping/"
+
+mainPath = "C:/Users/matvey/Documents/CS2/CV Lab Project (2Cameras-3dMapping)/"
 
 leftVideoPath = "rep/Debug media/v6_left.avi"
 rightVideoPath = "rep/Debug media/v6_right.avi"
@@ -513,7 +515,7 @@ while(cap1.isOpened()):
         
         print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
         #output to file
-        np.save("testout"+str(i), current3dPoints)
+        #np.save("testout"+str(i), current3dPoints)
         
         all_p3d = np.vstack((all_p3d,current3dPoints))
         all_desc = np.vstack((all_desc,currentDescriptors))

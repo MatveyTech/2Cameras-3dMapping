@@ -1,7 +1,7 @@
 <h1>Reconstructing 3D scene From a two cameras</h1>
 <h5>Michael Gonic, Matvey Rzhavskiy</h5>
 <h4>Project Goal: <br />
-	To Recunstuct a 3D Scene from videos from 2 diffrent Cameras<br>
+	To Reconstruct a 3D Scene from videos taken from the Stereo system (2 Cameras)<br>
 </h4>
 
 <b><u>Demonstration:</u></b>
@@ -31,7 +31,7 @@
 		<b><u>Project description:</u></b>
 		<br>
 		<ol>
-			<p><b>Input</b>br: Two Videos shot on 2 identical video cameras from 2 diffrent angles ( slight diffrance )</p>
+			<p><b>Input</b>br: Two Videos shot on 2 identical video cameras from 2 diffrent angles ( slight difference )</p>
 			[P_input.jpg]
 			<!--width:200px;Hight:200px-->
 
@@ -45,15 +45,17 @@
 			<!--width:585px;Hight:394px-->
 
 			<p><b>2. The First frame: </b><br/>
-			a. Find chess corners as described above
-			b.The path these corners and known 3D points of the chessboard to SolvePNP function (openCV)
+			<br>a. Find chess corners as described above</br>
+			b.Pass these corners and known 3D points of the chessboard to SolvePNP function (openCV)
 			The result is a vector of translation and rotation of the camera. We extract the rotation matrix using Rodrigues.
 			We calculated the 3X4 camera matrix form the rotation matrix, translation vector, and the inner calibration matrix.
 			(we did it for each camera independently)
+			<br>Once we have the location of each camera related to world, we can can calculate the camera1_2_camera2 matrix.<br/>
 
 			<p><b>3. Feature Matching Algorithm</b><br/>
 			We used sift algorithm as feature matching algorithm.<br/>
-			This alg works slower than others we tried but gave the best result.<br/>
+			This algorithm works slower than others we tried but gave the best result.<br/>
+			
 			At this stage, we extracted common features from the first frame of both left and right cameras.<br/>
 			
 			example for feature matching on two same frames on diffrent camers: <br/>
@@ -70,19 +72,19 @@
 			<!--width:570px;Hight:406px-->
 
 
-			<p><b>5.</b>.The second (and all the rest frames)
-			We look for the common features between the left & right frames and previous left and right frames.<br/> (as described in
+			<p><b>5.The second (and all the rest frames)</b></p>
+			We look for the common features between the left & right frames and previous left and right frames (as described in
 			3)<br/>
-			We now the 3D value of these common features from the previous frame.
+			We know the 3D value of these common features from the previous frame.
 			Using these common features and respective 3d values we calculate the projection matrices (for the new frame) of
-			both cameras.
+			the left camera. The location of the right camera is calculated from the location of the left camera and the camera1_2_camera2 matrix calculated in (2)
 			Now, using the same feature matching algorithm as described in (3) we extracted the common features from the left
 			and the right frames.
 
 			<p><b>6.</b>Triangulation with the input from the (5) gives us the 3d value of found features.
 			We save all the descriptors and theirs 3d values.
 
-			<p><b>7.</b>. We plotted the result:
+			<p><b>7.</b>We plotted the result:
 
 			<p><br />Our output:</p>
 
