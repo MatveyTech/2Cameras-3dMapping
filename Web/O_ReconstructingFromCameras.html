@@ -32,61 +32,66 @@
 		<br>
 		<ol>
 			<p><b>Input</b>br: Two Videos shot on 2 identical video cameras from 2 diffrent angles ( slight diffrance )</p>
-			[P_src.jpg]
+			[P_input.jpg]
 			<!--width:200px;Hight:200px-->
-			<li>
-				<p>Given an image of an eye, convert its data to a 3d representation:<br />
-					X and Y axis are the coordinates and Z is the color data.</p>
-			</li>
-			[P_3d_01.jpg]
-			<!--width:300px;Hight:300px-->
-			<li>
-				<p>Then the eye image is recursively divided into sectors to find the optimal eye partition.<br />
-					each sector is rotated parallel to X axis.</p>
-			</li>
-			[P_rotated_slice_02.jpg]
-			<!--width:600px;Hight:500px-->
-			<li>
-				<p>Each sector is then recursively divided to find optimal number of segments and their position.</p>
-			</li>
-			[P_figure_1.jpg]
-			<!--width:300px;Hight:300px"-->
-			<li>
-				<p>For each sector a plane that minimizes the distances of the (X,Y,Z) points from the plane is computed.</p>
-			</li>
-			[P_3d_02.jpg]
-			<!--width:300px;Hight:300px-->
-			<li>
-				<p>A dynamic programing algorithm is used in order to calculate the optimal partition to k segments.</p>
-			</li>
-			[P_optimal_division_elbow_graph.jpg]
-			<!--width:400px;Hight:400px-->
-			<li>
-				<p>In order to find the ideal number of partitions for the whole eye and for each sector (slice)<br />
-					a binary search is used to find the "elbow" point, <br />
-					the point that is farthest from the line that connects (1,f(1)) with (n,f(n))=(n,0),<br />
-					where (1,f(1)) is the sum of distances from the ideal plane of partition to 1 segment,<br />
-					and (n,f(n)) is the sum of distances from the ideal plane of partition to n segments.</p>
-			</li>
+
+			<p><b>1.Intrinsic camera calibration -</b><br/>
+			independently for each camera.<br/>
+			We used findchessboardCorners and calibrateCamera functions from openCV library.
+			This calibration is run only once for each camera.
+
+			example for calibration input:
+			[P_calib.jpg]
+			<!--width:585px;Hight:394px-->
+
+			<p><b>2. The First frame: </b><br/>
+			a. Find chess corners as described above
+			b.The path these corners and known 3D points of the chessboard to SolvePNP function (openCV)
+			The result is a vector of translation and rotation of the camera. We extract the rotation matrix using Rodrigues.
+			We calculated the 3X4 camera matrix form the rotation matrix, translation vector, and the inner calibration matrix.
+			(we did it for each camera independently)
+
+			<p><b>3. Feature Matching Algorithm</b><br/>
+			We used sift algorithm as feature matching algorithm.<br/>
+			This alg works slower than others we tried but gave the best result.<br/>
+			At this stage, we extracted common features from the first frame of both left and right cameras.<br/>
+			
+			example for feature matching on two same frames on diffrent camers: <br/>
+			[P_sift-example.jpeg]
+			<!--width:585px;Hight:394px-->
+
+			<p><b>4. Triangulation </b><br/>
+			We used triangulate function from opencv library. We passed to this function the features we get in (3) and the
+			projection matrices we got in (2)
+			The output of this function is 3d location of all these features we found in the 2d images.
+			At this stage the first frame is done so we can move to the next frame.
+			
+			[P_triangulation.png]
+			<!--width:570px;Hight:406px-->
+
+
+			<p><b>5.</b>.The second (and all the rest frames)
+			We look for the common features between the left & right frames and previous left and right frames.<br/> (as described in
+			3)<br/>
+			We now the 3D value of these common features from the previous frame.
+			Using these common features and respective 3d values we calculate the projection matrices (for the new frame) of
+			both cameras.
+			Now, using the same feature matching algorithm as described in (3) we extracted the common features from the left
+			and the right frames.
+
+			<p><b>6.</b>Triangulation with the input from the (5) gives us the 3d value of found features.
+			We save all the descriptors and theirs 3d values.
+
+			<p><b>7.</b>. We plotted the result:
+
 			<p><br />Our output:</p>
-			[P_eye_sketch.jpg]
+
+			[P_output_graph.jpg]
 			<!--width:400px;Hight:400px-->
 		</ol>
 
 		<br>
 
-		<p>
-			<b><u>Imporvments to the original algorithm:</u></b><br>
-			<ol>
-				<li>The code of the algorithm "the Shortest path with exactly k edges in a directed and weighted graph", <br />
-					was modified to python and combined into the project's code.</li>
-				<li>Graph data set was created to support the 3d representation.</li>
-				<li>The different stages explained in "Algorithm description" section were all implemented, <br />
-					including: 2d and 3d implemntation, modified binary search, combining algebraic regression,<br />
-					mathematical calculations(plane, distance from a point to a line, "finding the elbow point"). </li>
-			</ol>
-
-		</p>
 
 		<p>
 			<b><u>Contact us:</u></b><br>
