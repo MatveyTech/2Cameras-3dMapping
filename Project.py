@@ -23,8 +23,15 @@ if os.path.isdir("C:/Users/matvey/"):
 else:
     mainPath = "C:/matvery/2Cameras-3dMapping/"
 
+leftVideoPath = "rep/Debug media/v6_left.avi"
+rightVideoPath = "rep/Debug media/v6_right.avi"
+
+leftIntrinsicCalibFolder =  "rep/Debug media/LeftCalibGood/"
+rightIntrinsicCalibFolder = "rep/Debug media/RightCalibGood/"
+
 chess_w = 9
 chess_h = 6
+
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 #  input:  path to a folder with calibration pictures from a camera
@@ -282,6 +289,9 @@ def Get3DFrom4D(p4d):
     return p4d 
 
 def FilterPoints1(points,desc):
+    """    
+    Filter points by mean and std - all axes
+    """
     times_st = 2
     dict1 = {}
     for i in range(0, 3):
@@ -297,6 +307,9 @@ def FilterPoints1(points,desc):
     return new_p,new_desc
 
 def FilterPoints2(points,desc):
+    """    
+    Filter points by threshold - z only
+    """
     threshold = 500
     dict1 = {}
     for i in range(0, 3):
@@ -312,6 +325,9 @@ def FilterPoints2(points,desc):
     return new_p,new_desc
 
 def FilterPoints(points,desc):
+    """    
+    Filter points by axes or z only - depends on filterMode
+    """
     filterMode=2
     if filterMode==1:
         return FilterPoints1(points,desc)
@@ -326,27 +342,27 @@ def GetCamera4x4ProjMat(rvec, tvec):
     res = cv2.Rodrigues(rvec)[0]
     temp = np.hstack((res,tvec))
     return np.vstack((temp,np.asarray([0,0,0,1])))
+#%%
 
+"""    
+Calibrate cameras (intrinsic calibration)
+"""
 
-#%% intrinsic calibration for both cameras - should be run only once
-int_calib_path1 = mainPath + "rep/Debug media/LeftCalibGood/"
-int_calib_path2 = mainPath + "rep/Debug media/RightCalibGood/"
-
+int_calib_path1 = mainPath + leftIntrinsicCalibFolder
+int_calib_path2 = mainPath + rightIntrinsicCalibFolder
 
 cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path1))
 cam2_int_matrix, cam2_dist_coeff = (GetIntrinsicMatrix(int_calib_path2))
+
 
 #%% main loop
 
 import numpy as np
 import cv2
 i=0
-#cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video8.avi")
-#cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/debug_video7.avi")
-#cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/left_v.avi")
-#cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/right_v.avi")
-cap1 = cv2.VideoCapture(mainPath + "rep/Debug media/v6_left.avi")
-cap2 = cv2.VideoCapture(mainPath + "rep/Debug media/v6_right.avi")
+
+cap1 = cv2.VideoCapture(mainPath + leftVideoPath)
+cap2 = cv2.VideoCapture(mainPath + rightVideoPath)
 
 
 firstFrameDone=False
@@ -377,30 +393,10 @@ while(cap1.isOpened()):
     
     if not ret1 or not ret2:
         print ("not ret1 or not ret2")
-        print (ret1)
-        print (ret2)
+        print ("Done")
         break
-    if i<0:
-        continue
-#    if i==60:
-#        continue
-#     # I N J E C T I O N #############################
-#    ##################################################
-#    ##################################################
+    
 #    
-#    int_calib_path = mainPath + "rep/Debug media/LeftCalibGood/"
-#    cam1_int_matrix, cam1_dist_coeff = (GetIntrinsicMatrix(int_calib_path))
-#    cam2_int_matrix, cam2_dist_coeff = cam1_int_matrix, cam1_dist_coeff
-#    print ("INT calibration done")
-#    path1 = mainPath + "rep/Debug media/cameraLocationDebug-left/1.jpeg"
-#    frame1 = cv2.imread(path1)
-#    q
-#    path4 = mainPath + "rep/Debug media/cameraLocationDebug-left/2.jpeg"
-#    frame2 = cv2.imread(path4)    
-#    
-#    ###################################################
-#    ###################################################
-#    ###################################################
     # first frame handling
     if not firstFrameDone:        
         print("Working on frame %d"%(i))
@@ -440,7 +436,7 @@ while(cap1.isOpened()):
         #np.save("testout77", p3d)       
         firstFrameDone=True
     else: 
-#uncomment this if you wantr to run the mainloop on first i frames
+#uncomment this if you want to run the mainloop on first i frames
 #        if i>10:
 #            break
 
