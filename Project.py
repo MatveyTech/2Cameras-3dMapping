@@ -394,7 +394,7 @@ while(cap1.isOpened()):
     ret2, frame2 = cap2.read()
     
     if not ret1 or not ret2:
-        print ("not ret1 or not ret2")
+        print ("not ret1 or not ret2") 
         print ("Done")
         break
     
