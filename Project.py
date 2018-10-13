@@ -406,26 +406,21 @@ while(cap1.isOpened()):
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
         rot1 = cv2.Rodrigues(rvec1)[0]
-#        temp1 = np.hstack((rot1,tvec1))
-#        chess2cam1 = np.vstack((temp1,[0,0,0,1]))
-#        cam1_2chess = np.linalg.inv(chess2cam1)
-#        print(np.dot(rot1,tvec1))
-#        print(np.dot(rot1.T,tvec1))
-        
+
         SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
         
         m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
         retval2, rvec2, tvec2 = m2
         cam2_pm = GetCamera3x4ProjMat(rvec2,tvec2,cam2_int_matrix)
         rot2 = cv2.Rodrigues(rvec2)[0]
-        #print(np.dot(rot2,tvec2)) 
-        #print("____________________________________") 
+        
         SanityCheck(GetObjectPoints(),corners2,cam2_int_matrix,cam2_dist_coeff)
         
         c1 = GetCamera4x4ProjMat(rvec1,tvec1)
         c2 = GetCamera4x4ProjMat(rvec2,tvec2)
         camera1_to_camera2 = np.dot(c2,inv(c1))
         im1_f,im2_f,im1_desc,im2_desc = FindCommonFeatures(frame1,frame2)
+        print("Features found: Left:%d, Right:%d."%(im1_f.shape[0],im2_f.shape[0]))
         # input:  cam1_pm : cam 1 projectionMatrix, cam2_pm : cam 2 projecetionMatrix ,im1_f: frame 1 features ,im2_f: frame 2 features
         # triangulatePoints	Output array with computed 3d points. Is 3 x N.
         p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
@@ -445,7 +440,7 @@ while(cap1.isOpened()):
         
         print("Working on frame %d"%(i))
         t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
-        #print("Features found: Left:%d, Right:%d."%(t_im1_f.shape[0],t_im2_f.shape[0]))
+        print("Features found: Left:%d, Right:%d."%(t_im1_f.shape[0],t_im2_f.shape[0]))
         if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
             print ("Not enough data. Image is skipped")
             continue
@@ -513,7 +508,7 @@ while(cap1.isOpened()):
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         
-        print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
+       # print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
         #output to file
         #np.save("testout"+str(i), current3dPoints)
         
