@@ -1,0 +1,118 @@
+<h1>Reconstructing 3D scene From a two cameras</h1>
+<h5>Michael Gonic, Matvey Rzhavskiy</h5>
+<h4>Project Goal: <br />
+	To Reconstruct a 3D Scene from videos taken from the Stereo system (2 Cameras)<br>
+</h4>
+
+<b><u>Demonstration:</u></b>
+<br>
+<P>TODO:A short clip explaining our project
+	<br>
+	[V_project_video.m4v]
+</p>
+<p>
+	<b><u>Code:</u></b>
+	<br>
+	<br>
+	all our code can be found on GITHUB <a href="https://github.com/MatveyTech/2Cameras-3dMapping">https://github.com/MatveyTech/2Cameras-3dMapping</a>.<br>
+	<p>
+		<b><u>Workspace:</u></b><br />
+		<br />
+		[P_python-logo.jpg]
+		<!--width:200px;Hight:100px-->
+		<br />
+		[P_opencv-logo.png]
+		<!--width:200px;Hight:248px-->
+		<br />
+		<p>Windows/Linux/MacOs<br /> Python 3.5 or higher<br /> OpenCV 3.4 or higher</p>
+		<br />
+		2 ODROID USB-CAM 720P <br />
+		[P_camera.jpg]
+		<!--width:200px;Hight:248px-->
+	</p>
+
+	<p>
+		<b><u>Project description:</u></b>
+		</br>
+		<ol>
+			<p><b>Input</b>br: Two Videos shot on 2 identical video cameras from 2 diffrent angles ( slight diffrance )</p>
+			Single Frame from input video: </br>
+			[P_input.png]
+			<!--width:1592px;Hight:673px-->
+
+			<p><b>1.Intrinsic camera calibration -</b><br/>
+			independently for each camera.<br/>
+			We used findchessboardCorners and calibrateCamera functions from openCV library.
+			This calibration is run only once for each camera.
+
+			example for calibration input:
+			[P_calib.jpg]
+			<!--width:585px;Hight:394px-->
+
+			<p><b>2. The First frame: </b><br/>
+			<br>a. Find chess corners as described above</br>
+			b.Pass these corners and known 3D points of the chessboard to SolvePNP function (openCV)
+			The result is a vector of translation and rotation of the camera. We extract the rotation matrix using Rodrigues.
+			We calculated the 3X4 camera matrix form the rotation matrix, translation vector, and the inner calibration matrix.
+			(we did it for each camera independently)
+			<br>Once we have the location of each camera related to world, we can can calculate the camera1_2_camera2 matrix.<br/>
+
+			<p><b>3. Feature Matching Algorithm</b><br/>
+			We used sift algorithm as feature matching algorithm.<br/>
+			This algorithm works slower than others we tried but gave the best result.<br/>
+			
+			At this stage, we extracted common features from the first frame of both left and right cameras.<br/>
+			
+			example for feature matching on two same frames on diffrent camers: <br/>
+			[P_sift-example.jpeg]
+			<!--width:2560px;Hight:720px-->
+
+			<p><b>4. Triangulation </b><br/>
+			We used triangulate function from opencv library. We passed to this function the features we get in (3) and the
+			projection matrices we got in (2)
+			The output of this function is 3d location of all these features we found in the 2d images.
+			At this stage the first frame is done so we can move to the next frame.
+			
+			[P_triangulation.png]
+			<!--width:570px;Hight:406px-->
+
+
+			<p><b>5.The second (and all the rest frames)</b></p>
+			We look for the common features between the left & right frames and previous left and right frames (as described in
+			3)<br/>
+			We know the 3D value of these common features from the previous frame.
+			Using these common features and respective 3d values we calculate the projection matrices (for the new frame) of
+			the left camera. The location of the right camera is calculated from the location of the left camera and the camera1_2_camera2 matrix calculated in (2)
+			Now, using the same feature matching algorithm as described in (3) we extracted the common features from the left
+			and the right frames.
+
+			<p><b>6.</b>Triangulation with the input from the (5) gives us the 3d value of found features.
+			We save all the descriptors and theirs 3d values.
+
+			<p><b>7.</b>We plotted the result:
+
+			<p><br />Our output:</p>
+
+			[P_output.png]
+			<!--width:729px;Hight:643px-->
+			<a href="./AdvancedVisualizationFeatures.html">
+			Click Here To See Live 3D Plot </a>.<br>
+			<p><br />Output Combined with real image data layout scene: </p>
+			[P_output2.png]
+			<!--width:1361px;Hight:756px-->
+
+		</ol>
+
+		<br>
+
+
+		<p>
+			<b><u>Contact us:</u></b><br>
+			Michael Gonic: <a href="mailto:michael.gonic@gmail.com" target="_blank">michael.gonic@gmail.com</a><br>
+			Matvey Rzhavskiy: <a href="mailto:matvey.tech@gmail.com" target="_blank">matvey.tech@gmail.com </a> <br>
+
+			<br>
+
+
+		</p>
+	</p>
