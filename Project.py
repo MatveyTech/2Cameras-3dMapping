@@ -347,7 +347,7 @@ def GetCamera4x4ProjMat(rvec, tvec):
 #%%
 
 """    
-Calibrate cameras (intrinsic calibration)
+Calibrate cameras (intrinsic calibration) - Run this code only once
 """
 
 int_calib_path1 = mainPath + leftIntrinsicCalibFolder
@@ -405,8 +405,7 @@ while(cap1.isOpened()):
         m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
         retval1, rvec1, tvec1 = m1
         cam1_pm = GetCamera3x4ProjMat(rvec1,tvec1,cam1_int_matrix)
-        rot1 = cv2.Rodrigues(rvec1)[0]
-
+        
         SanityCheck(GetObjectPoints(),corners1,cam1_int_matrix,cam1_dist_coeff)
         
         m2,corners2 = GetCameraPosition_chess(frame2,cam2_int_matrix,cam2_dist_coeff,False)
@@ -421,22 +420,17 @@ while(cap1.isOpened()):
         camera1_to_camera2 = np.dot(c2,inv(c1))
         im1_f,im2_f,im1_desc,im2_desc = FindCommonFeatures(frame1,frame2)
         print("Features found: Left:%d, Right:%d."%(im1_f.shape[0],im2_f.shape[0]))
+        
         # input:  cam1_pm : cam 1 projectionMatrix, cam2_pm : cam 2 projecetionMatrix ,im1_f: frame 1 features ,im2_f: frame 2 features
         # triangulatePoints	Output array with computed 3d points. Is 3 x N.
         p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
         all_p3d = p3d
         all_desc = im1_desc
-        #print (p3d.shape)
-        #np.save("testout77", p3d)       
+              
         firstFrameDone=True
     else: 
-#uncomment this if you want to run the mainloop on first i frames
-#        if i>10:
-#            break
-
         
         print("Working on frame %d"%(i))
         t_im1_f,t_im2_f,t_im1_desc,t_im2_desc = FindCommonFeatures(frame1,frame2)
@@ -444,15 +438,11 @@ while(cap1.isOpened()):
         if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
             print ("Not enough data. Image is skipped")
             continue
-#        if t_im1_f.shape[0] < 5 or t_im2_f.shape[0] < 5:
-#            print ("Not enough data. Image is skipped")
-#            continue
         
         im1_f,im2_f,im1_desc,im2_desc= t_im1_f,t_im2_f,t_im1_desc,t_im2_desc
         
         common_2d_l,common_desc_l,common_3d_l = Match2Dand3D(frame1,all_desc,all_p3d)                  
-        
-        
+                
         if CameraPositioningMode==0:
             #print ("Chess only")
             m1,corners1 = GetCameraPosition_chess(frame1,cam1_int_matrix,cam1_dist_coeff,False)
@@ -487,8 +477,7 @@ while(cap1.isOpened()):
         r1,corners1 = FindCorners(frame1)
         r2,corners2 = FindCorners(frame2)
         
-        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T)       
-        #p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,corners1.reshape(54,2).T,corners2.reshape(54,2).T)
+        p3d = cv2.triangulatePoints(cam1_pm,cam2_pm,im1_f.T,im2_f.T) 
         p3d_orig = p3d
         p3d=Get3DFrom4D(p3d)
         
@@ -503,19 +492,21 @@ while(cap1.isOpened()):
         current3dPoints = p3d
         currentDescriptors = im1_desc
         
+        #filtering out irrelevant points
         current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         
-       # print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
+       #print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
         #output to file
         #np.save("testout"+str(i), current3dPoints)
         
         all_p3d = np.vstack((all_p3d,current3dPoints))
         all_desc = np.vstack((all_desc,currentDescriptors))
-                
-np.save("testout77", all_p3d)    
+
+print ("All done")          
+np.save("output", all_p3d)    
 cap1.release()
 cap2.release()
 cv2.destroyAllWindows()

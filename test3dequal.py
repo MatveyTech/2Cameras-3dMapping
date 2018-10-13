@@ -63,7 +63,7 @@ fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
-sss = np.load("testout77.npy")
+sss = np.load("output.npy")
 print (type(sss))
 print (sss.shape)
 #for s in sss:
