@@ -508,12 +508,12 @@ while(cap1.isOpened()):
         
         current3dPoints , currentDescriptors = FilterPoints(p3d,im1_desc)
         current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
-##        current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
-##        current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
+        current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
+        current3dPoints , currentDescriptors = FilterPoints(current3dPoints,currentDescriptors)
         
-        #print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
+        print("%d points filtered"%(p3d.shape[0]-current3dPoints.shape[0]))
         #output to file
-        #np.save("testout"+str(i), current3dPoints)
+        np.save("testout"+str(i), current3dPoints)
         
         all_p3d = np.vstack((all_p3d,current3dPoints))
         all_desc = np.vstack((all_desc,currentDescriptors))
